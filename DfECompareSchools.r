@@ -3,7 +3,7 @@ library(dplyr)
 library(tidyr)
 library(magrittr)
 
-#download school summary data from: https://www.compare-school-performance.service.gov.uk/
+#download 2016 school summary data from: https://www.compare-school-performance.service.gov.uk/
 
 loadEntries <- function(filename){
 
@@ -77,9 +77,14 @@ loadSchools <- function(filename){
 
 calculateProviderStats <- function(students, schools, sub, qual){
 
+  #students <- KS4Entries
+  #schools <- KS4Schools
+  #sub <- "Computer Studies/Computing"
+  #qual <- "GCSE Full Course"
+
   compDF <- students %>%
     group_by(`Provider Type`) %>%
-    mutate(compProviders = 
+    mutate(compProviders =
              ifelse(Subject == sub & Qualification == qual, TRUE, FALSE),
            compStudents =  ifelse(Subject == sub & Qualification == qual, Entries, NA)) %>%
     summarise(`Total Providers` = length(unique(URN)),
@@ -89,21 +94,21 @@ calculateProviderStats <- function(students, schools, sub, qual){
               `Avg Cohort` = mean(compStudents, na.rm=TRUE),
               `Median Cohort` = median(compStudents, na.rm=TRUE))
 
-  AllSchoolDF <- schools %>% 
+  AllSchoolDF <- schools %>%
     group_by(`Institution Type`) %>%
     summarise(`Total Students` = sum(`Number of students at the end of KS4`))
-  
+
   df <- left_join(compDF, AllSchoolDF, by = c("Provider Type" = "Institution Type"))
-  df <- df %>% mutate(`% of Students` = 100 * (`Computing Students`/`Total Students`)) %>% 
+  df <- df %>% mutate(`% of Students` = 100 * (`Computing Students`/`Total Students`)) %>%
     filter(!is.na(`Provider Type`))
   df <- df %>% select(`Provider Type`, `Total Providers`, `Total Students`, `Computing Providers`,
-                  `% of Providers`, `Computing Students`, `% of Students`,`Avg Cohort`, `Median Cohort`) %>% 
+                      `% of Providers`, `Computing Students`, `% of Students`,`Avg Cohort`, `Median Cohort`) %>%
     arrange(desc(`Total Students`))
-  
+
   #add total row
-  Totals <- df %>% ungroup() %>% 
+  Totals <- df %>% ungroup() %>%
     summarise(`Provider Type` = "Total",
-              `Total Providers` = sum(`Total Providers`), 
+              `Total Providers` = sum(`Total Providers`),
               `Total Students` = sum(`Total Students`),
               `Computing Providers` = sum(`Computing Providers`),
               `% of Providers` = 100*(`Computing Providers` / `Total Providers`),
@@ -111,23 +116,36 @@ calculateProviderStats <- function(students, schools, sub, qual){
               `% of Students` = 100*(`Computing Students` / `Total Students`),
               `Avg Cohort` = `Computing Students`/ `Computing Providers`,
               `Median Cohort` = NA
-              )
-  
+    )
+
   df <- rbind(df, Totals)
 
+  df <- df %>% mutate(`% of Providers` = round(`% of Providers`,1),
+                `% of Students` = round(`% of Students`,1),
+                `Avg Cohort` = round(`Avg Cohort`,1),
+                `Median Cohort` = round(`Median Cohort`,1))
   return(df)
-  
 }
 
-KS5filename <- "C:/Users/Peter/Downloads/2015-2016_england_ks5underlying.xlsx"
+
+##############
+##############
+####Ouptuts###
+##############
+##############
+
+#file link to downloaded DfE data (data available here: https://www.compare-school-performance.service.gov.uk/)
 KS4filename <- "C:/Users/Peter/Downloads/2015-2016-england_ks4underlying.xlsx"
 
-KS5Entries <- loadEntries(KS5filename)
-KS5Schools <- loadSchools(KS5filename)
-
+#load national data into usable format
 KS4Entries <- loadEntries(KS4filename)
 KS4Schools <- loadSchools(KS4filename)
 
-#num of schools offering GCSE:
-calculateProviderStats(KS4Entries, KS4Schools, "Computer Studies/Computing", "GCSE Full Course")
-calculateProviderStats(KS5Entries, KS4Schools, "Computer Studies/Computing", "GCSE Full Course")
+#num of schools offering GCSE in given subjects:
+GCSEComp <- calculateProviderStats(KS4Entries, KS4Schools, "Computer Studies/Computing", "GCSE Full Course")
+GCSEICT <- calculateProviderStats(KS4Entries, KS4Schools, "Information & Communications Technology", "GCSE Full Course")
+GCSEPhysics <- calculateProviderStats(KS4Entries, KS4Schools, "Physics", "GCSE Full Course")
+
+write.csv(GCSEComp, file = "c:/temp/2016compprovisionCOMP.csv")
+write.csv(GCSEICT, file = "c:/temp/2016compprovisionICT.csv")
+write.csv(GCSEPhysics, file = "c:/temp/2016compprovisionPHYSICS.csv")
