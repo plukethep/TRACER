@@ -3,7 +3,8 @@ library(dplyr)
 library(tidyr)
 library(magrittr)
 
-#download 2016 school summary data from: https://www.compare-school-performance.service.gov.uk/
+# download 2016 school summary data from: https://www.compare-school-performance.service.gov.uk/
+# https://www.compare-school-performance.service.gov.uk/download-data?currentstep=datatypes&regiontype=all&la=0&downloadYear=2015-2016&datatypes=ks4underlying
 
 loadEntries <- function(filename){
 
