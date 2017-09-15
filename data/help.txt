@@ -1,0 +1,11 @@
+This folder is where data will be stored for analysis:
+ - cleaned: student and results tables stripped of spurious fields
+ - maps: shapefiles used for heat maps
+ - postcodes: postcode data for the whole of England
+ - qualificaitons: files describing discount codes, qualification numbers etc
+ - results: RAW result files from the DfE
+ - students: RAW student files from the DFE
+ - schools: school information from Edubase
+ - spreads: collated data, one line for a student with columns for each subject result
+ 
+ Please see each folder for more information on where the data is sourced from
