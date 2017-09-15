@@ -1,0 +1,8 @@
+These are the RAW student census files from the DfE NPD request. They should all be named:
+ - KS4: KS4Pupil_YEAR_Census e.g. KS4Pupil_2012_Census
+ - KS5: KS5CandInd_YEAR_KS4_KS3_Census e.g. KS5CandInd_2012_KS4_KS3_Census
+ 
+ 
+ To find out how to source these files, see: https://www.gov.uk/guidance/national-pupil-database-apply-for-a-data-extract
+ 
+ This folder contains confidential data and should NEVER be comitted to GIT
