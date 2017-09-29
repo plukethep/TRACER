@@ -1,0 +1,3 @@
+Schools are loaded from the DfE edubase
+Get the latest version of this file possible AND include closed schools
+https://get-information-schools.service.gov.uk/Establishments/Search/Download?id=ab126747-55b0-42cf-8a5e-b28bfbb9bb91&fileFormat=CSV&SearchQueryString=SelectedTab%3DEstablishments%26SearchType%3DEstablishmentAll%26TextSearchModel.AutoSuggestValue%3D%26f%3Dtrue%26OpenOnly%3Dfalse&SearchSource=Establishments
