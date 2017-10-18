@@ -1,1 +1,6 @@
-
+This folder stores the following files needed to create reports:
+ - TRACER_20XX.rmd      Markdown file for annual TRACER report
+ - preamble-latex.tex   Tex file linking in needed tex packages
+ - pre-body-latex.tex   Tex file containing custom tex descriptions
+ - bibliography.bib     Bibliographic file for all citations
+ - apa.csl              file to allow for correct APA referencing in the rmd file
