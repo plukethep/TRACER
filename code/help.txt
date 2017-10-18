@@ -1,0 +1,9 @@
+This folder contains all the cleaning and analysis code for analysing the NPD:
+ - Main.R              Code that calls load, clean and match functions to get data into a format that is fast and uncluttered
+ - Loading.R           All funcitons needed to load student, results, schools, local authorities, maps etc.
+ - Collation.R         Functions to match students to their results and cross match with previous years.
+ - Tables.R            Code to create specific anonmyised tables
+ - Graphs.R            Funcitons to create graphs and maps
+ - Tools.R             Useful tools to: convert grades to points and vice versa, anonymise data, return Regional mapping codes, fetch only specified columns from a CSV, clean data tables.
+ - PrettyPrinting.R    Code specifically for TRACER rmd document to help with laying out tables and printing values
+ - Statistics.R        Statistical models that are used for analysis
