@@ -1,0 +1,7 @@
+These are the RAW results tables from the DfE NPD request. They should all be named:
+ - KS4: KS4Results_YEAR e.g. KS4Results_2012.txt
+ - KS5: KS5Results_YEAR e.g. KS5Results_2015.txt
+ 
+ To find out how to source these files, see: https://www.gov.uk/guidance/national-pupil-database-apply-for-a-data-extract
+ 
+ This folder contains confidential data and should NEVER be comitted to GIT
