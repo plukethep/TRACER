@@ -1,0 +1,1 @@
+This folder stores temporary outputs. E.g. results in CSV format or SVG graphs
