@@ -27,7 +27,9 @@ The code base will currently allow you to:
 4. create any reports in __/reports__ folder (see _How to write a report_ below)
 5. any updates to the code, consider comitting back to github
 
-## Preparing RStudio
+## Preparing your environment
+We would recommend that you download and use [RStudio](https://www.rstudio.com/products/rstudio/download/) for your analysis. It's crossplatform, free and wonderful.
+
 Depending on how you are storing you NPD dataset you might not have a networked machine. If this is the case you need to get the correct packages installed in RStudio before you start your analysis. (Requests from RStudio to talk to the CRAN server might well meet with a blank response!). The packages you need are as listed in the code below. If you run this code on a networked machine it will download _win.binary_ files to your __c:/tmp/packages/__ folder. Linux and Mac users need to use xxxxx
 
 ```r
