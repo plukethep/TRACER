@@ -27,4 +27,30 @@ The code base will currently allow you to:
 4. create any reports in __/reports__ folder (see _How to write a report_ below)
 5. any updates to the code, consider comitting back to github
 
+## Preparing RStudio
+Depending on how you are storing you NPD dataset you might not have a networked machine. If this is the case you need to get the correct packages installed in RStudio before you start your analysis. (Requests from RStudio to talk to the CRAN server might well meet with a blank response!). The packages you need are as listed in the code below. If you run this code on a networked machine it will download _win.binary_ files to your __c:/tmp/packages/__ folder. Linux and Mac users need to use xxxxx
+
+```r
+getPackages <- function(packs){
+  packages <- unlist(
+    tools::package_dependencies(packs, available.packages(),
+                                which=c("Depends", "Imports"), recursive=TRUE)
+  )
+  packages <- union(packs, packages)
+  packages
+}
+
+ packages <- getPackages(c("abind","assertthat","bitops","Cairo","caTools","colorspace",
+                           "DBI","digest","dplyr","evaluate","formatR","gdtools","ggplot2",
+                           "gridExtra","gtable","highr","htmltools","httr","knitr",
+                           "labeling","lazyeval","magrittr","maptools","markdown","munsell",
+                           "pander","plyr","purrr","R.methodsS3","R.oo","R.utils","R6",
+                           "RColorBrewer","Rcpp","rgdal","rgeos","rmarkdown","scales",
+                           "sp","stringi","stringr","svglite","tibble","tidyr","xtable","yaml"))
+ 
+ download.packages(packages, destdir="C:/tmp/packages/", 
+                   type="win.binary")
+ ```
+ Once all the files are downloaded transfer them to your NPD analysis machine and load them from there.
+
 ## How to write a report
