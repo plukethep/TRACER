@@ -14,15 +14,15 @@ The code base will currently allow you to:
 
 1. Download TRACER folder structure
 2. follow instructions in __/data__ folder to download: 
-.. + __../students__  NPD student datasets for
-.. + __../results__ NPD results datasets for 
-.. + __../schools__ Most recent snapshot of Edubase provider list
-.. + __../qualifications__ Most recent JCQ snapshot of xxxxx
-.. + __../maps__ 
-... + updated postcode information from gov.uk
-... + regional map of England from xxxxx
-... + local education authority map of England from xxxxx
-... + coastal map of England from xxxxx
+..* __../students__  NPD student datasets for
+..* __../results__ NPD results datasets for 
+..* __../schools__ Most recent snapshot of Edubase provider list
+..* __../qualifications__ Most recent JCQ snapshot of xxxxx
+..* __../maps__ 
+...* updated postcode information from gov.uk
+...* regional map of England from xxxxx
+...* local education authority map of England from xxxxx
+...* coastal map of England from xxxxx
 3. create cleaned versions of the student and results by running the following commands in __Main.R__
 4. create any reports in __/reports__ folder (see _How to write a report_ below)
 5. any updates to the code, consider comitting back to github
