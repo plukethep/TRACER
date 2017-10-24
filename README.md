@@ -30,7 +30,7 @@ The code base will currently allow you to:
 ## Preparing your environment
 We would recommend that you download and use [RStudio](https://www.rstudio.com/products/rstudio/download/) for your analysis. It's crossplatform, free and wonderful.
 
-Depending on how you are storing you NPD dataset you might not have a networked machine. If this is the case you need to get the correct packages installed in RStudio before you start your analysis. (Requests from RStudio to talk to the CRAN server might well meet with a blank response!). The packages you need are as listed in the code below. If you run this code on a networked machine it will download _win.binary_ files to your __c:/tmp/packages/__ folder. Mac users need to set __Type__ = _"mac.binary"_ and Linux set __Type__ = _"source"_
+Depending on how you are storing you NPD dataset you might not have a networked machine. If this is the case you need to get the correct packages installed in RStudio before you start your analysis. (Requests from RStudio to talk to the CRAN server might well meet with a blank response!). The packages you need are as listed in the code below. If you run this code on a networked machine it will download _win.binary_ files to your __c:/tmp/packages/__ folder. Mac users need to set __type__ = _"mac.binary"_ and Linux set __type__ = _"source"_
 
 ```r
 # with thanks to: https://www.mango-solutions.com/blog/installing-packages-without-the-internet
