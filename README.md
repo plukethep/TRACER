@@ -19,7 +19,7 @@ The code base will currently allow you to:
     * __../schools__ Most recent snapshot of Edubase provider list from: http://www.education.gov.uk/edubase/home.xhtml
     * __../qualifications__ Most recent JCQ snapshot of xxxxx
     * __../maps__ 
-        * updated postcode information from [ordnancesurvey](https://www.ordnancesurvey.co.uk/opendatadownload/products.html), combine all the letters into one large csv file called _postcodes.csv_. [Instructions](http://webpierat.com/2011/05/23/merging-csv-files-using-the-command-line/) on how to do this with command line. 
+        * updated postcode information from [ordnancesurvey](https://www.ordnancesurvey.co.uk/opendatadownload/products.html), combine all the letters into one large csv file called _postcodes.csv_. [Instructions](http://webpierat.com/2011/05/23/merging-csv-files-using-the-command-line/) on how to do this with command line. (see [also](https://www.r-bloggers.com/gb-postcode-polygons-open-data/))
         * regional map of England from [sharegeo](https://www.sharegeo.ac.uk/handle/10672/50)
         * local education authority map of England from [statistics.gov.uk](http://geoportal.statistics.gov.uk/datasets/c4a62d87de9f4b6087cf5f1515d5a0c1_0?geometry=-8.141%2C54.005%2C4.933%2C55.897&uiTab=table&orderByFields=ctyua14nm+ASC_)
         * coastal map of England from [divagis](http://www.diva-gis.org/datadown)
