@@ -12,27 +12,33 @@ The code base will currently allow you to:
  
 ## Installation
 
-1. Download TRACER folder structure
+1. Pull TRACER from github
 2. follow instructions in __/data__ folder to download
-    * __../students__ NPD student datasets (restricted DfE data)
-    * __../results__ NPD results datasets (restricted DfE data)
+    * __../students__ NPD student datasets (restricted DfE data). Rename files as follows:
+        - KS4: KS4Pupil_YEAR_Census e.g. KS4Pupil_2012_Census
+        - KS5: KS5CandInd_YEAR_KS4_KS3_Census e.g. KS5CandInd_2012_KS4_KS3_Census
+    * __../results__ NPD results datasets (restricted DfE data). Rename files as follows:
+        - KS4: KS4Results_YEAR e.g. KS4Results_2012.txt
+        - KS5: KS5Results_YEAR e.g. KS5Results_2015.txt
     * __../schools__ Most recent snapshot of Edubase provider list from: http://www.education.gov.uk/edubase/home.xhtml
+        * rename the file provided by Edubase as schools.csv
     * __../qualifications__ Most recent JCQ snapshot of xxxxx
+        
     * __../maps__ 
         * updated postcode information from [ordnancesurvey](https://www.ordnancesurvey.co.uk/opendatadownload/products.html), combine all the letters into one large csv file called _postcodes.csv_. [Instructions](http://webpierat.com/2011/05/23/merging-csv-files-using-the-command-line/) on how to do this with command line. (see [also](https://www.r-bloggers.com/gb-postcode-polygons-open-data/))
         * regional map of England from [sharegeo](https://www.sharegeo.ac.uk/handle/10672/50)
         * local education authority map of England from [statistics.gov.uk](http://geoportal.statistics.gov.uk/datasets/c4a62d87de9f4b6087cf5f1515d5a0c1_0?geometry=-8.141%2C54.005%2C4.933%2C55.897&uiTab=table&orderByFields=ctyua14nm+ASC_)
         * coastal map of England from [divagis](http://www.diva-gis.org/datadown)
     * __../filters__ results.json and students.json files allow you to specify which fields you wish to pull from the DfE provided datasets. The format is: 
-         ```{ Keystage :{ 
-                     Year :{ 
-                         "grep string to match DFE field name" : "cleaned field name" 
-                     },
-           },
-         }```
+```{ Keystage :{ 
+              Year :{ 
+                   "grep string to match DFE field name" : "cleaned field name" 
+              },
+     },
+   }```
 3. create cleaned versions of the student and results by running the following commands in __/code/Main.R__
-   First load all the ```source("...")``` files, this will provide the commands needed to clean the datasets
-   Second run ```Main(years, keystages)```, where ```years``` stores the two digit year numbers as a vector, and ```keystages``` lists which keystages you want to clean. For example: ```Main(years = c(12:17), keystages = c("KS4","KS5"))``` 
+   * First load all the ```source("...")``` files, this will provide the commands needed to clean the datasets
+   * Second run ```Main(years, keystages)```, where ```years``` stores the two digit year numbers as a vector, and ```keystages``` lists which keystages you want to clean. For example: ```Main(years = c(12:17), keystages = c("KS4","KS5"))``` 
 4. create any reports in __/reports__ folder (see _How to write a report_ below)
 5. any updates to the code, consider comitting back to github
 
