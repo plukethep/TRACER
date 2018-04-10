@@ -15,8 +15,8 @@ The code base will currently allow you to:
 1. Pull TRACER from github
 2. follow instructions in __/data__ folder to download
     * __../students__ NPD student datasets (restricted DfE data). Rename files as follows:
-        - KS4: KS4Pupil_YEAR_Census e.g. _KS4Pupil_2012_Census_
-        - KS5: KS5CandInd_YEAR_KS4_KS3_Census e.g. _KS5CandInd_2012_KS4_KS3_Census_
+        - KS4: KS4Pupil_YEAR_Census e.g. _KS4Pupil_2012_Census.txt_
+        - KS5: KS5CandInd_YEAR_KS4_KS3_Census e.g. _KS5CandInd_2012_KS4_KS3_Census.txt_
     * __../results__ NPD results datasets (restricted DfE data). Rename files as follows:
         - KS4: KS4Results_YEAR e.g. _KS4Results_2012.txt_
         - KS5: KS5Results_YEAR e.g. _KS5Results_2015.txt_
