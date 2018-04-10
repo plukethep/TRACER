@@ -1,20 +1,16 @@
-year <- 16
-yr <- 16
-keystage <- "KS5"
-level <- c(310,311,320)
-year_range <- c(12:17)
+# WARNING: you must load functions from these files before running main command
+codefolder <- getwd()
+source(paste0(codefolder,'Tools.R'))
+source(paste0(codefolder,'Collation.R'))
+source(paste0(codefolder,'Graphs.R'))
+source(paste0(codefolder,'Loading.R'))
+source(paste0(codefolder,'Tables.R'))
+source(paste0(codefolder,'Statistics.R'))
+source(paste0(codefolder,'PrettyPrinting.R')) 
 
-# populate spreadResults for further analysis
+# clean the datasets, clean data will go into TRACER/data/cleaned
 # WARNING: this takes 30-60 minutes
-
-Main(keystages = c("KS5"))
-
-Main(c(12:17), c("KS4","KS5"))
-setwd(basefolder)
-
-unique(Spread_GCSE_13$schType)
-unique(Spread_GCSE_16$schType)
-unique(Spread_GCSE_17$schType)
+Main(years = c(12:17), keystages = c("KS4","KS5"))
 
 #load the data into RAM
 for(yr in year_range){
@@ -23,12 +19,6 @@ for(yr in year_range){
   initialiseDataFrames("KS4", "GCSE",   as.character(yr))
   initialiseDataFrames("KS5", "Alevel", as.character(yr))
 }
-
-# rm(schools)
-# Spread_filename <- paste0(cleanfolder, "CleanSpread_2016KS4.csv")
-# assign(paste0("Spread_GCSE_16"), read_csv(Spread_filename, col_names = TRUE) %>% mutate_all(funs(type.convert(as.character(.)))), envir = .GlobalEnv)
-# head(Spread_GCSE_16)year <- 16
-
 
 # initiliase all the cleaned dataframes into cleaned folder
 # make spread using clean students and clean results
@@ -122,7 +112,7 @@ Main <- function(years = c(12:17), keystages = c("KS4", "KS5")){
         distinct(PupilMatchingRefAnonymous, URN, SUBLEVNO, MAPPING, POINTS)
 
       #TODO: fix this properly.., it will distort maths results
-      # adjust the 2017 + results to deal with 1-9 grading
+      # adjust the 2017+ results to deal with 1-9 grading for maths and two English exams
       if(yr >= 17 & keystage == "KS4"){
         single_QAN_results <- single_QAN_results %>%
           mutate(POINTS = case_when(!MAPPING %in% c(2210, 5030, 5110) & POINTS == 8.5 ~ 8.0,
