@@ -2,67 +2,77 @@
 #####LOADING DATA
 #################
 
+
 # load students, results and spreads into RAM for each keystage year combo
-initialiseDataFrames <- function(keystage, qual, year){
+initialiseDataFrames <- function(keystage, qual, year, cleanfolder=paste0(getwd(),"/data/cleaned/"), get_local = FALSE){
+
+  message(cleanfolder)
   # keystage="KS4"
   # qual="GCSE"
   # year = 16
   # level = c(310)
-  
-  Students_filename <- paste0(cleanfolder, "CleanStudents_20", year, keystage,".csv")
-  Results_filename <- paste0(cleanfolder, "CleanResults_20", year, keystage,".csv")
-  Spread_filename <- paste0(cleanfolder, "CleanSpread_20", year, keystage,".csv")
-  
-  if(!file.exists(Students_filename) | !file.exists(Results_filename) | !file.exists(Spread_filename)){
-    print(paste("ERROR: missing cleaned file(s) for", year))
-    print(paste(Students_filename, "|",Results_filename))
-    print("create them with outputCleanStudents(..) or Main()")
+
+  #first check that the data isn't in temp storage:
+  if(get_local){
+    if(exists("temp_students")){
+      print("loading temp_students")
+      assign(paste0("Students_", qual,"_", year), get("temp_students"), envir = .GlobalEnv)
+    }else{
+      print("MISSING temp_students")
+    }
+    if(exists("temp_results")){
+      print("loading temp_results")
+      assign(paste0("Results_", qual,"_", year), get("temp_results"), envir = .GlobalEnv)
+    }else{
+      print("MISSING temp_results")
+    }
+    if(exists("temp_spread")){
+      print("loading temp_spread")
+      assign(paste0("Spread_", qual,"_", year), get("temp_spread"), envir = .GlobalEnv)
+    }else{
+      print("MISSING temp_spread")
+    }
   }else{
-    assign(paste0("Students_", qual,"_", year), read_csv(Students_filename, col_names = TRUE), envir = .GlobalEnv)
-    assign(paste0("Results_", qual,"_", year), read_csv(Results_filename, col_names = TRUE), envir = .GlobalEnv)
-    
-    # fix column types for new readr implementation, which sets some results columns to character 2017-10-02    
-    assign(paste0("Spread_", qual,"_", year), read_csv(Spread_filename, col_names = TRUE) %>% mutate_all(funs(type.convert(as.character(.)))), envir = .GlobalEnv)
-    # sapply(temp, class)
-    
-    print(paste("Init", keystage, qual, year))
+    Students_filename <- paste0(cleanfolder, "CleanStudents_20", year, keystage,".csv")
+    Results_filename <- paste0(cleanfolder, "CleanResults_20", year, keystage,".csv")
+    Spread_filename <- paste0(cleanfolder, "CleanSpread_20", year, keystage,".csv")
+
+    if(!file.exists(Students_filename) | !file.exists(Results_filename) | !file.exists(Spread_filename)){
+      message(paste("ERROR: missing cleaned file(s) for", year))
+      message(paste(Students_filename, "|",Results_filename))
+      message("create them with outputCleanStudents(..) or Main()")
+    }else{
+      assign(paste0("Students_", qual,"_", year), read_csv(Students_filename, col_names = TRUE), envir = .GlobalEnv)
+      assign(paste0("Results_", qual,"_", year), read_csv(Results_filename, col_names = TRUE), envir = .GlobalEnv)
+
+      # fix column types for new readr implementation, which sets some results columns to character 2017-10-02
+      assign(paste0("Spread_", qual,"_", year),
+             read_csv(Spread_filename, col_names = TRUE) %>% mutate_all(funs(type.convert(as.character(.)))),
+             envir = .GlobalEnv)
+      # sapply(temp, class)
+      print(paste("Init", keystage, qual, year))
+    }
   }
 }
 
+#get the relevant QANs for a given year
+loadQANs <- function(year=17){
+
+  filename <- paste(getwd(), "/data/qualifications/QAN20", year, ".csv",sep="")
+  QANs <- read_csv(filename, col_names = TRUE)
+  return(QANs)
+}
 
 #load all results for a particular year
 loadResults <- function(year, keystage, n=0){
-  warning("loading results")
+  message("loading results")
   # year <- 15
   # keystage <- "KS5"
 
   filename <- paste(getwd(), "/data/results/", keystage, "Results_20",year,".txt",sep="")
 
-  if(year == 16){
-      ### get column names of wanted fields ###
-      fields <- read.csv( text="MatchString,NewName
-                          PupilMatchingRefAnonymous, PupilMatchingRefAnonymous
-                          _URN$, URN
-                          EXAMYEAR, EXAMYEAR
-                          SUBLEVNO,SUBLEVNO
-                          QAN, QAN
-                          MAPPING, MAPPING
-                          GRADE, GRADE
-                          POINTS$, POINTS")
-  }else{
-    ### get column names of wanted fields ###
-    fields <- read.csv( text="MatchString,NewName
-                        PupilMatchingRefAnonymous, PupilMatchingRefAnonymous
-                        _URN$, URN
-                        EXAMYEAR, EXAMYEAR
-                        SUBLEVNO,SUBLEVNO
-                        QAN, QAN
-                        MAPPING, MAPPING
-                        GRADE, GRADE
-                        POINTS, POINTS")
-  }
-
-
+  # get the fields for each year's results tables
+  fields <- get_data_filter_fields(keystage, year, "results")
 
   #TODO: check that KS4_POINTS_PTQ is the correct field for getting points for KS4
 
@@ -81,11 +91,12 @@ loadResults <- function(year, keystage, n=0){
 
 #load all students for a particular year
 loadStudents <- function(year, keystage, n=0){
-  warning("loading students")
-  
-  
-  # year <- 16
-  # keystage <- "KS4"
+  message("loading students")
+
+
+  # year <- 17
+  # keystage <- "KS5"
+  # n = 100000
 
   if (keystage == "KS4"){
     filename <- paste(getwd(), "/data/students/", keystage, "Pupil_20",year,"_Census.txt",sep="")
@@ -94,117 +105,12 @@ loadStudents <- function(year, keystage, n=0){
     filename <- paste(getwd(), "/data/students/", keystage, "CandInd_20",year,"_KS4_KS3_Census.txt",sep="")
   }
 
+  # GET FIELDS TO FILTER THE DATAFILES
   #URN used to include
   #",
   #keystage, "_URN$|$URN_, URN
   # All years have the format where KSX_URN supply the URN of a student. However, this changes for KS5 2016 where it is URN_SPR16
-
-  if(year == 16){
-    ### get column names of wanted fields ###
-    fields <- read.csv( text=paste0("MatchString,NewName
-                                    PupilMatchingRefAnonymous, PupilMatchingRefAnonymous
-                                    _GENDER, GENDER\n",
-                                    paste0(keystage,"_URN$, URN"),
-                                    "\nEthnicGroupMinor_, EthMin
-                                    EthnicGroupMajor_, EthMaj
-                                    FSMeligible_, FSMeligible
-                                    EVERFSM_3, EVERFSM_3
-                                    EVERFSM_6, EVERFSM_6
-                                    IDACIScore_15, IDACIScore
-                                    KS4_IDACI, IDACIScore
-                                    SENprovision_, SEN
-                                    SENprovisionMajor_, SENMaj
-                                    KS2ENG, KS2Eng
-                                    KS2MAT, KS2Mat
-                                    SENPS, SENPS
-                                    SENA, SENA
-                                    SCITALEV, KS3Sci
-                                    ENGTALEV, KS3Eng
-                                    MATTALEV, KS3Mat
-                                    _EAL, EAL
-                                    KS4_FSM, KS4_FSM"))
-  }else if(keystage == "KS5" & year == 16){
-    ### get column names of wanted fields ###
-    fields <- read.csv( text=paste0("MatchString,NewName
-                                    PupilMatchingRefAnonymous, PupilMatchingRefAnonymous
-                                    _GENDER, GENDER
-                                    URN_SPR16$, URN
-                                    EthnicGroupMinor_, EthMin
-                                    EthnicGroupMajor_, EthMaj
-                                    FSMeligible_, FSMeligible
-                                    EVERFSM_3, EVERFSM_3
-                                    EVERFSM_6, EVERFSM_6
-                                    IDACIScore_15, IDACIScore
-                                    KS4_IDACI, IDACIScore
-                                    SENprovision_, SEN
-                                    SENprovisionMajor_, SENMaj
-                                    KS2ENG, KS2Eng
-                                    KS2MAT, KS2Mat
-                                    SENPS, SENPS
-                                    SENA, SENA
-                                    SCITALEV, KS3Sci
-                                    ENGTALEV, KS3Eng
-                                    MATTALEV, KS3Mat
-                                    _EAL, EAL
-                                    KS4_FSM, KS4_FSM"))
-  }else if(keystage == "KS5" & year == 12){
-    ### NOTE, this ignores EAL as there is a double match ###
-    #"DUPLICATE MATCH ERROR on  _EAL : 626 KS4_EAL_P2APS"   "DUPLICATE MATCH ERROR on  _EAL : 627 KS4_EAL_P2APSSQ"
-
-    warning(paste("matching KS5 2012, ignoring EAL"))
-
-    fields <- read.csv( text=paste0("MatchString,NewName
-                                    PupilMatchingRefAnonymous, PupilMatchingRefAnonymous
-                                    _GENDER, GENDER\n",
-                                    paste0(keystage,"_URN$, URN"),
-                                    "\nEthnicGroupMinor_, EthMin
-                                    EthnicGroupMajor_, EthMaj
-                                    FSMeligible_, FSMeligible
-                                    EVERFSM_3, EVERFSM_3
-                                    EVERFSM_6, EVERFSM_6
-                                    IDACIScore, IDACIScore
-                                    KS4_IDACI, IDACIScore
-                                    SENprovision_, SEN
-                                    SENprovisionMajor_, SENMaj
-                                    KS2ENG, KS2Eng
-                                    KS2MAT, KS2Mat
-                                    SENPS, SENPS
-                                    SENA, SENA
-                                    SCITALEV, KS3Sci
-                                    ENGTALEV, KS3Eng
-                                    MATTALEV, KS3Mat
-                                    KS4_FSM, KS4_FSM"))
-
-
-
-  } else{
-    ### get column names of wanted fields ###
-    fields <- read.csv( text=paste0("MatchString,NewName
-                                    PupilMatchingRefAnonymous, PupilMatchingRefAnonymous
-                                    _GENDER, GENDER\n",
-                                    paste0(keystage,"_URN$, URN"),
-                                    "\nEthnicGroupMinor_, EthMin
-                                    EthnicGroupMajor_, EthMaj
-                                    FSMeligible_, FSMeligible
-                                    EVERFSM_3, EVERFSM_3
-                                    EVERFSM_6, EVERFSM_6
-                                    IDACIScore, IDACIScore
-                                    KS4_IDACI, IDACIScore
-                                    SENprovision_, SEN
-                                    SENprovisionMajor_, SENMaj
-                                    KS2ENG, KS2Eng
-                                    KS2MAT, KS2Mat
-                                    SENPS, SENPS
-                                    SENA, SENA
-                                    SCITALEV, KS3Sci
-                                    ENGTALEV, KS3Eng
-                                    MATTALEV, KS3Mat
-                                    _EAL, EAL
-                                    KS4_FSM, KS4_FSM"))
-
-  }
-
-
+  fields <- get_data_filter_fields(keystage, year, "students")
 
 
   # IDACIScore_10_SPR16:  IDACI (Income Deprivation Affecting Children Indices) score derived from the pupil's postcode; based on Index of Multiple Deprivation (IMD) 2010.   (As held in Spring Census 2016 – SPR16)
@@ -213,7 +119,6 @@ loadStudents <- function(year, keystage, n=0){
   #removed IDACIRank_, IDACIRank
 
   #NOTE THAT _URN$, URN -> keystage, "_URN$, URN as KS5 results tables had multiple URNs for each keystage
-
 
   ## KS4 Only fields
   #"KS2ENG","KS2MAT",IDACIScore_, IDACIRank_
@@ -228,14 +133,15 @@ loadStudents <- function(year, keystage, n=0){
   ff <- buildCSVfilter(getColumnIds(fields, filename, "\t"), filename, "\t")
 
   if (n==0){ #load everything
-    warning("loading all students")
+    message("loading all students")
     students <- read_delim(filename, delim="\t", col_names = TRUE, col_types = ff) #, n_max=Inf)
-   
-    
+
   }else{
-    warning(paste("loading", n,"students"))
+    message(paste("loading", n,"students"))
     students <-  read_delim(filename, delim="\t", col_names = TRUE, col_types = ff, n_max=n)
+
   }
+
 
 
   # replace column names
@@ -273,24 +179,31 @@ loadStudents <- function(year, keystage, n=0){
     #  filter(is.na(KS4_FSM)) %>% group_by(FSMeligible_SPR14) %>% summarise(n = n())
   }
 
-  #631673
-  #deal with duplicates
-  students <- students %>% distinct() %>% arrange(PupilMatchingRefAnonymous, EthMaj, IDACIScore)
+  # Added for 2017 dataset to cope with multiple records per student and only type 1 records being relevant
+  if("RECTYPE" %in% names(students)){
+    message("multiple records per student, filtering on KS5_RECTYPE == 1")
+    students <- students %>% filter(RECTYPE == 1)
+    #get distinct students and ignore the URN
+    students <- students %>% select(-URN) %>% distinct()
 
-  # NOTE: at this stage we delete students with multiple schools, this makes up ~0.07% of a cohort
-  warning(paste0("Due to duplicate PupilRefNo, deleting ", nrow(students) - length(unique(students$PupilMatchingRefAnonymous)), " out of ", nrow(students), " records"))
+    warning(paste0("Case: RECTYPE. Due to duplicate PupilRefNo, deleting ", nrow(students) - length(unique(students$PupilMatchingRefAnonymous)), " out of ", nrow(students), " records"))
 
+
+  } else {
+    #631673
+    #deal with duplicates
+    students <- students %>% distinct() %>% arrange(PupilMatchingRefAnonymous, EthMaj, IDACIScore)
+
+    # NOTE: at this stage we delete students with multiple schools, this makes up ~0.07% of a cohort
+    warning(paste0("Due to duplicate PupilRefNo, deleting ", nrow(students) - length(unique(students$PupilMatchingRefAnonymous)), " out of ", nrow(students), " records"))
+  }
+
+  #filter out those students with multiple genders 2017 KS5 0.3%
+  students <-  students %>% group_by(PupilMatchingRefAnonymous) %>% mutate(n= n()) %>% filter(n  == 1) %>% select(-n) %>% ungroup()
   #get any duplicated students
-  IDs <- as.vector(students[duplicated(students$PupilMatchingRefAnonymous),]$PupilMatchingRefAnonymous)
-
-  students <- students %>% filter(!PupilMatchingRefAnonymous %in% IDs)
-
-  #which students have the same school and multiple entries?!
-  #t <- students %>% distinct(PupilMatchingRefAnonymous, URN)
-  #IDs <- as.vector(students[duplicated(students$PupilMatchingRefAnonymous, students$URN),]$PupilMatchingRefAnonymous)
-
-
-  #631664
+  # IDs <- as.vector(students[duplicated(students$PupilMatchingRefAnonymous),]$PupilMatchingRefAnonymous)
+  #
+  # students <- students %>% filter(!PupilMatchingRefAnonymous %in% IDs)
 
   #TODO: deal with data missing from student records where student attend two institutions, keep this data
 
@@ -338,13 +251,13 @@ loadStudentResults <- function(year, keystage, level, n=0){
 
   ##delete duplicates, keeping the top score.
   results <- results %>%
-    filter_(paste0("EXAMYEAR == \"20",year,"\"")) %>%    #TODO: check that we need this line
-    select(PupilMatchingRefAnonymous, URN, MAPPING, POINTS, GRADE, SUBLEVNO) %>%
-    group_by(PupilMatchingRefAnonymous, MAPPING) %>%
+    filter_(paste0("EXAMYEAR == \"20",year,"\"")) %>%    #TODO: check that we need this line # 9th Feb 2018 - we definitely do!
+    select(PupilMatchingRefAnonymous, URN, MAPPING, QAN, POINTS, GRADE, SUBLEVNO) %>%
+    group_by(PupilMatchingRefAnonymous, MAPPING, QAN) %>%
     filter(POINTS == max(POINTS)) %>% #get rid of repeated grades, only use the highest grade
     ungroup() %>%
     arrange(GRADE) %>%  #deals with case X and U both being worth 0 points. distinct picks X over U at the moment
-    distinct(PupilMatchingRefAnonymous, URN, SUBLEVNO, MAPPING, POINTS) #gets rid of two grades earning same points
+    distinct(PupilMatchingRefAnonymous, URN, SUBLEVNO, MAPPING, QAN, POINTS) #gets rid of two grades earning same points
 
   #TODO: deal with X results, how to do this?
 
@@ -385,7 +298,7 @@ loadCleanedStudents <- function(year, keystage){
 
 # laod schoosl from Edubase data
 loadSchools <- function(dir=getwd(), overwrite = FALSE){
-  print("loading schools")
+  message("loading schools")
   #schools from: http://www.education.gov.uk/edubase/home.xhtml
   if (!exists("schools") | overwrite)
   {
@@ -414,11 +327,14 @@ loadSchools <- function(dir=getwd(), overwrite = FALSE){
                         Northing, Northing")
 
     ff <- buildCSVfilter(
-      getColumnIds(fields, filename, s=","), 
+      getColumnIds(fields, filename, s=","),
       filename, ",")
 
+    # Find out why the CSV file is stored as a "ISO-8859-1" and not "UTF-8"
     #read the data for each school
-    schools <- read_delim(filename, delim=",", col_names = TRUE, col_types = ff, n_max=Inf)
+    schools <- read_delim(filename, delim=",", col_names = TRUE,
+                          col_types = ff, n_max=Inf,
+                          locale = locale(encoding = "ISO-8859-1"))
     #schools <- read_csv  (filename, head=TRUE,sep=",", colClasses = ff)
 
     #get rid of all spaces in postcodes
@@ -433,17 +349,22 @@ loadSchools <- function(dir=getwd(), overwrite = FALSE){
   return(schools)
 }
 
+loadDiscMappings <- function(dir=getwd()){
+  # if error use bassefolder instead of dir
+  filename <- paste(dir, "/data/qualifications/", "MappingCodes.txt",sep="")
 
-loadDiscMappings <- function(){
-  filename <- paste(getwd(), "/data/qualifications/", "MappingCodes.txt",sep="")
-  DiscCodes <- read_delim(filename, col_names = TRUE, delim="\t")
+  if(exists("mapping_codes")){
+    return(mapping_codes)
+  }
 
-  return(DiscCodes)
+  mapping_codes <- read_delim(filename, col_names = TRUE, delim="\t")
+
+  return(mapping_codes)
 }
 
 loadSUBLEVNO <- function(){
   filename <- paste(getwd(), "/data/qualifications/", "SUBLEVNO.csv",sep="")
-  SUBLEVNO <- read_csv(filename, col_names = TRUE, delim=",")
+  SUBLEVNO <- read_csv(filename, col_names = TRUE)# , delim=",")
 
   return(SUBLEVNO)
 }
@@ -509,7 +430,7 @@ loadPostcodes <- function(dir=getwd()){
 }
 
 loadMap <- function(resolution, dir=getwd()){
-  #resolution <- "LA"
+  # resolution <- "LEA"
   # load shapefile from
   if (resolution == "LA"){
     # https://geoportal.statistics.gov.uk/Docs/Boundaries/Local_authority_district_(GB)_2014_Boundaries_(Generalised_Clipped).zip
@@ -650,15 +571,44 @@ loadCoastalSchools <- function(overwrite = FALSE, dir=getwd()){
     mapcoor<-spTransform(longlatcoor,CRS(tempp))
     mapcoor <- as.data.frame(mapcoor)
     names(mapcoor) <- c("Easting", "Northing")
-    
-    # work out the nearest costal point from each school 
+
+    #chop scotland off the map so we don't have to compare the coastline
+    # mapcoor <- mapcoor %>% filter(Northing < 620000)
+
+    # work out the nearest costal point from each school
     Distance <- sapply(1:nrow(schools), function(x)
                           with(schools[x,], min(sqrt((mapcoor$Easting - Easting)^2+
                                                        (mapcoor$Northing - Northing)^2))))
-													   
     # merge back into the schools dataframe
     temp <- cbind(schools, Distance) %>% mutate(Coastal = ifelse(Distance > cutoffdistance, FALSE, TRUE))
-        
+
+    # really slow version
+    # #for each school, check that no coastal map point is within 5k from it
+    # for (sch in schools$URN){
+    #   C <- FALSE
+    #   SEasting <- schools %>% filter(URN == sch) %$% Easting
+    #   SNorthing <- schools %>% filter(URN == sch) %$% Northing
+    #
+    #   #check to see if distance from coastal point makes school coastal
+    #   #Sqrt((N1-N2)²+(E1-E2)²)=Distance in metres
+    #   mindisance <- mapcoor %>%
+    #     summarise(distance =
+    #                 min(sqrt((SEasting - Easting)^2 +
+    #                            (SNorthing - Northing)^2))) %$% distance
+    #
+    #   #if it is a coastal school update the shortest distance
+    #   if (mindisance <= cutoffdistance){
+    #     schools <- schools %>%
+    #       mutate(Coastal =
+    #                ifelse(URN == sch, TRUE, Coastal))
+    #     C <- TRUE
+    #   }
+    #
+    #   #save the distance of the school from the coast
+    #   schools <- schools %>% mutate(Distance =
+    #                                   ifelse(URN == sch, mindisance, Distance))
+    # }
+
     write.csv(temp, file = paste0(getwd(), "/data/schools/CoastalSchools.csv"), row.names = FALSE)
   }
 
@@ -764,13 +714,19 @@ loadLocalAuthorities <- function(){
 
 loadLocalEducationAuthorities <- function(LEAs=NULL, dir=getwd()){
   if(is.null(LEAs)){
-    filename <- paste(dir, "/data/schools/schools.csv",sep="")
-    LEAs <- read_delim(filename, col_names=TRUE, delim=",") #, nrows = 100)
+    #if(!exists("schools")){
+      filename <- paste(dir, "/data/schools/schools.csv",sep="")
+      LEAs <- read_csv(filename, col_names=TRUE) # , delim=",") #, nrows = 100)
+    #}else{
+    #  LEAs <- schools
+    #}
+  }else{
+    return(LEAs)
   }
   #get all LEAs with open schools. (this picks up the Isles of Scilly)
   LEAs <- LEAs %>% filter(grepl("E", `GSSLACode (name)`)) %>%
     select(URN, EstablishmentNumber, `LA (name)`, `GSSLACode (name)`)
-  
+
   #update Northumberland for 2015 (E06000048) / other code swap (E06000057)
   LEAs$`GSSLACode (name)` <- as.character(LEAs$`GSSLACode (name)`)
   LEAs[LEAs$`LA (name)` == "Northumberland",]$`GSSLACode (name)` <- "E06000057"
@@ -783,7 +739,7 @@ loadLocalEducationAuthorities <- function(LEAs=NULL, dir=getwd()){
 loadSchoolRegions <- function(dir=getwd()){
   schools <- loadSchools(dir=dir)
   postcodes <- loadPostcodes(dir=dir)
-  
+
   #get region and LA of each schools
   schoollist <- left_join(
     schools[,c("URN", "Name", "LA..code.",
@@ -791,11 +747,13 @@ loadSchoolRegions <- function(dir=getwd()){
                "selective","Postcode")],
     postcodes[,c("Postcode", "Region", "area3")],
     by = "Postcode") %>% ungroup()
-  
+
   return(schoollist)
 }
 
 loadSchoolsSubset <- function(URNS, folder, filename){
+
+  #paste0(outputfolder, "/",paste0(keystage, "_PyeTait_All_School_Table",".csv"))
 
   temp <- type_convert(read_csv(paste0(folder, filename, ".csv"), col_types = cols(.default = "c")))
   temp <- temp %>% filter(URN %in% URNS | URN == "TOTAL")

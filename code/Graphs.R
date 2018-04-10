@@ -3,14 +3,23 @@
 #####GRAPH OUTPUT
 #################
 
-# plot given data for given grouping, filtered on items for a range of years
-plotYearlyData <- function(data_name, grouping, measure, items, year_range=c(12,13,14,15,16), subject_name){  
+
+plotYearlyData <- function(data_name, grouping, measure, items, year_range=c(14,15,16,17), subject_name){
+  # data_name <- "table_GCSE_provider_type"
+  # measure <- "Providers %"
+  # items <- c("Academy converter", "Community school", "Academy sponsor led", "Foundation school", "Voluntary aided school", "Other independent school", "Voluntary controlled school")
+  # grouping <- "Type"
+  # subject_name <- "computer science"
+
 
   graph_data <- OutputTableByYearlyData(data_name, grouping, measure, items, year_range, subject_name)
 
-  p <- ggplot(graph_data, aes(x=Year, y=as.numeric(get(measure)), group=get(grouping), colour=get(grouping))) + 
+  p <- ggplot(graph_data, aes(x=Year, y=as.numeric(get(measure)), group=get(grouping), colour=get(grouping))) +
     geom_line() + geom_point(stat="identity") +
-    scale_y_continuous("Percentage of providers")
+    scale_y_continuous(measure) +
+    expand_limits(y=0) +
+	  labs(colour="Type")
+	# ADDED 2018-02-22
     #   geom_text(aes(label=anon,x=grade,y=percentage),
     #           position=position_dodge(width=1), vjust=-0.5) +
     # theme(legend.title=element_blank(),
@@ -20,15 +29,24 @@ plotYearlyData <- function(data_name, grouping, measure, items, year_range=c(12,
   return(p)
 }
 
+
 #plot schools or students on a heatmap of England
 plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=NULL, title="Computing schools", type="provider"){
-  warning(resolution, type)
-  
+  warning(resolution, " - ", type)
+
+  # map <- LAmap
+  # region_data <- get(paste0("table_",course,"_provider_lea")) %>% rename(Region = Type)
+  # resolution <- "lea"
+  # regions <- NULL
+  # title <- paste(subject_name, focus, "% - local education authorities"),
+  # type <- focus
+
+
   #message(0, nrow(region_data))
    # map <- LAmap
    # map <- Regionmap
    # region_data <- table_GCSE_provider_lea %>% rename(Region = Type)
-  
+
   #merge the region/LEA IDs to the region_data
   if(resolution == "region"){
     region_data <- getRegionCodes(region_data)
@@ -46,21 +64,21 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
   }
 
   #message("2", nrow(region_data))
-  
+
   region_data <- region_data[region_data[,c(1)] != "Totals",]
   region_data <- region_data %>% filter(!is.na(Region))
 
   #merge LA data into the map
-  temp_map <- left_join(map %>% mutate(id = as.character(id)), 
-                        region_data %>% mutate(Code = as.character(Code)), 
+  temp_map <- left_join(map %>% mutate(id = as.character(id)),
+                        region_data %>% mutate(Code = as.character(Code)),
                         by=c("id"="Code"))
   #temp_map <- merge(map, region_data %>% select(Code, `Subject Students`, `Subject Providers`, `Providers %`, `Students %`), by.x="id", by.y="Code", all.x = TRUE)
 
   # message("3", nrow(temp_map))
-  
+
   #check that all regions have a value to plot
   temp <- distinct(temp_map, id, `Subject Students`)
-  
+
   if(nrow(temp[is.na(temp$`Subject Students`),]) > 0)
   {
     warning(paste(" ERROR map data, missing figures for ",
@@ -68,7 +86,7 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
   }
 
   # message("4", nrow(temp_map))
-  
+
   #check that there is data for each LA. The map matches the data
   mapIds <- unique(temp_map$id)
   subIds <- unique(region_data$Code)
@@ -80,7 +98,7 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
   }
 
   # message("5", nrow(temp_map))
-  
+
   #arrange the pieces and order so regions draw correctly
   temp_map <- temp_map %>% arrange(piece, order)
 
@@ -105,20 +123,20 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
                                    temp_map[temp_map$hole,]$id,],
                    aes(fill=`Providers %`))
   }else if(type=="student"){
-    
+
     # message("6", nrow(temp_map))
-    
+
     # TODO: deal with any X data
     temp_map <- temp_map %>% mutate(`Total Students` = as.numeric(`Total Students`),
-                                    `Students %` = ifelse(`Students %` == "X", 
+                                    `Students %` = ifelse(`Students %` == "X",
                                                           ifelse(6 / `Total Students` > 0.05, 5, 100*(6/as.numeric(`Total Students`))),
                                                           as.numeric(`Students %`)),
                                     `Subject Students` = ifelse(`Subject Students` == "X", 6, as.numeric(`Students %`)))
-    
+
     # message("7", nrow(temp_map))
-    
+
     total <- sum(temp_map$`Subject Students`, na.rm=TRUE)
-    
+
     p <- ggplot(temp_map, aes(x=long, y=lat, group=group)) +
       geom_polygon(data=temp_map[temp_map$id %in%
                                    temp_map[temp_map$hole,]$id,],
@@ -126,9 +144,9 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
       geom_polygon(data=temp_map[!temp_map$id %in%
                                    temp_map[temp_map$hole,]$id,],
                    aes(fill=`Students %`))
-    
+
     # message("8", nrow(temp_map))
-    
+
   }
 
   #add the rest of the data to the map
@@ -142,51 +160,146 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
           plot.title = element_text(size=10))
 
   # message("9", nrow(temp_map))
-  
+
   #move the legend into the map
   p <- p + theme(legend.position = c(0.10, 0.80))
 
   # message("10", nrow(temp_map))
-  
+
+  return(p)
+}
+
+#function for the Royal Society Report
+plotResultsOnHeatMapRS <- function(map, region_data, regions=NULL, title="Computing schools", type="school"){
+
+   #  map <- Regionmap
+   #  map <- LAmap
+   # region_data <- temp LAfemaleStats %>% filter(GENDER == "F")
+
+  #if specific regions are being mapped, e.g. to focus on london
+  if(!is.null(regions)){
+    region_data <- region_data %>% filter(Code %in% regions)
+    map <- map %>% filter(id %in% regions)
+  }
+
+  region_data <- region_data[region_data[,c(1)] != "Totals",]
+  region_data <- region_data %>% filter(!is.na(Code))
+
+  #merge LA data into the map
+  temp_map <- merge(map, region_data, by.x="id", by.y="Code", all.x = TRUE)
+
+  #check that all regions have a value to plot
+  temp <- distinct(temp_map, id, subTotalWhatPercentage)
+  if(nrow(temp[is.na(temp$id),]) > 0)
+  {
+    warning(paste("ERROR map data, missing figures for",
+                  temp[is.na(temp$`Subject\nStudents`),]$id))
+  }
+
+  #check that there is data for each LA. The map matches the data
+  mapIds <- unique(temp_map$id)
+  subIds <- unique(region_data$Code)
+
+  #setdiff(region_data$Code, map$id)
+  #Missing Gateshead -> E08000037 according to school data, E08000020 according to mapping data
+  #find out missing data
+  #temp <- unique(temp_map %>% select(id,subTotalWhatPercentage, LA..name.))
+  #head(temp_map)
+
+  if(length(subIds) != length(mapIds))
+  {
+    warning(paste("ERROR in LA ID match:", length(subIds) , " vs ",
+                  length(mapIds), " = {", setdiff(mapIds,subIds), "}"))
+  }
+
+  if(length(setdiff(region_data$Code, map$id)) > 0){
+    warning(paste("map has empty region:", setdiff(region_data$Code, map$id)))
+  }
+
+  #arrange the pieces and order so regions draw correctly
+  temp_map <- temp_map %>% arrange(piece, order)
+
+  ###### TODO
+  ###ANONYMISE RESULTS WITH LESS THAN 6 per region?
+  ######
+
+  # check that numbers match those expected:
+  # temp <- temp_map %>% group_by(id) %>% distinct(`Subject\nStudents`) %>% select(`Subject\nStudents`)
+  # sum(temp$`Subject\nStudents`, na.rm = TRUE)
+
+  #deal with the holes in the LEA maps, print areas with holes first
+  # the craziness explained here:
+  #http://stackoverflow.com/questions/21748852/choropleth-map-in-ggplot-with-polygons-that-have-holes
+
+  total <- sum(region_data$subStudents, na.rm=TRUE)
+
+
+
+  p <- ggplot(temp_map, aes(x=long, y=lat, group=group)) +
+    geom_polygon(data=temp_map[temp_map$id %in%
+                                 temp_map[temp_map$hole,]$id,],
+                 aes(fill=subTotalWhatPercentage)) +
+    geom_polygon(data=temp_map[!temp_map$id %in%
+                                 temp_map[temp_map$hole,]$id,],
+                 aes(fill=subTotalWhatPercentage))
+
+  #add the rest of the data to the map
+  p <- p + scale_fill_distiller(palette = "Spectral", name="%") +
+    theme_bw() +
+    theme(axis.text.y=element_blank(),
+          axis.text.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.title.x=element_blank(),
+          plot.title = element_text(size=10))
+
+  #move the legend into the map
+  p <- p + theme(legend.position = c(0.10, 0.80))
+
   return(p)
 }
 
 #plot each school on a map
 plotResultsOnScatterMap <- function(map, provider_data, regions=NULL,  title="Computing schools"){
-  
-  # provider_data <- table_GCSE_provider_all
 
+  # map <- loadMap("LEA")
+  # provider_data <- table_GCSE_provider_all
+  # regions <- loadLondonLEAs()
+  #
   # clean the data
   provider_data <- provider_data[provider_data[,c(1)] != "Totals",]
   provider_data <- provider_data %>% filter(!is.na(Type))
-  
+
   # sum(as.numeric(provider_data$`Total Students`), na.rm=TRUE)
   # sum(as.numeric(provider_data$`Subject Students`), na.rm=TRUE)
-  
+
   provider_info <- loadSchools()
-  provider_data <- left_join(provider_data, provider_info %>% 
-                               select(URN, schType, selective, schGender, Easting, Northing) %>% mutate(URN = as.character(URN)), 
+  provider_data <- left_join(provider_data, provider_info %>%
+                               select(URN, schType, selective, schGender, Easting, Northing) %>% mutate(URN = as.character(URN)),
                              by = c("Type" = "URN"))
-  
+
   # add selective column
-  provider_data <- provider_data %>% 
-                      mutate(schType = ifelse(regexpr("inde", schType) != -1, 
+  provider_data <- provider_data %>%
+                      mutate(schType = ifelse(regexpr("inde", schType) != -1,
                                                       "Independent",
                                                       ifelse(regexpr("Selective", selective) != -1, "Grammar school",
                                                                     "State non-selective"))) %>%
                       rename(`Provider Type` = schType,
                              Gender = schGender) %>%
-                      select(-selective)
+                      select(-selective) %>%
+                      filter(`Subject Students` > 0)
 
   #if specific regions are being mapped, e.g. to focus on london
-  
+
   # TODO: filter on london schools only
-  
+
   if(!is.null(regions)){
-    provider_data <- provider_data %>% filter(Code %in% regions)
+    # provider_data <- provider_data %>% filter(Code %in% regions)
     map <- map %>% filter(id %in% regions)
-    map <- left_join(map, tempLEAs)
-    
+    provider_data <- provider_data %>%
+      filter(Easting < max(map$long), Easting > min(map$long),
+             Northing < max(map$lat), Northing > min(map$lat))
+
+
     q <- theme(legend.title = element_text(colour="black"))
   }else{
     #move the legend into the map
@@ -199,13 +312,13 @@ plotResultsOnScatterMap <- function(map, provider_data, regions=NULL,  title="Co
   #anonymise small schools
   provider_data <- provider_data %>% mutate(`Subject Students` = ifelse(`Subject Students` == "X", 5, as.numeric(`Subject Students`))) %>%
     rename(Cohort = `Subject Students`)
-  
+
   provider_data <- provider_data %>% filter(Easting != 0)
 
   #TODO: add area names. add note for anonymised data
 
   #plotted crosses denote a school that has fewer than 6 students
-  q <- ggplot(provider_data, aes(x=Easting, y=Northing)) +
+  q <- ggplot(provider_data, aes(x=Easting , y=Northing)) +
     geom_polygon(data=map, aes(x=long, y=lat, group=group), colour='grey', fill='white') + q
 
   #plot all schools that have 5 or more students
@@ -233,6 +346,94 @@ plotResultsOnScatterMap <- function(map, provider_data, regions=NULL,  title="Co
     #ggtitle(paste(title, "( n = ", total, ")"))
 
   return(q)
+}
+
+#function for the Royal Society Report
+plotResultsOnScatterMapRS <- function(map, school_data, regions=NULL, title="Computing schools"){
+  # map<-LAmap
+  # school_data <- SchfemaleStats
+  # regions <- NULL
+
+  #regions <- loadLeedsLEAs()
+
+  #if specific regions are being mapped, e.g. to focus on london
+  if(!is.null(regions)){
+    #get list of LEAs with their names
+    tempLEAs <- getLocalEducationAuthorities() %>%
+      distinct(LA..name., GSSLACode..name.) %>%
+      rename(LEAName = LA..name.,
+             id = GSSLACode..name.)
+
+    map <- map %>% filter(id %in% regions)
+    school_data <- school_data %>% filter(area5 %in% regions)
+
+    #mjoin the LEA names to their IDs
+    map <- left_join(map, tempLEAs)
+
+    #move the legend into the map
+    q <- theme(legend.title = element_text(colour="black"))
+
+  }else{
+    #move the legend into the map
+    q <- theme(legend.position = c(0.2, 0.8))
+  }
+
+  temp_school <- school_data
+
+  #TODO: code to check that the school_data values corrrespond to JCQ sizes
+  total <- nrow(school_data)
+
+  #TODO: anonymise schools
+  temp_school$subStudents <- ifelse(school_data$subStudents < 6 & school_data$subStudents > 0,
+                                                                      5, school_data$subStudents)
+
+  temp_school$subTotalWhatPercentage <- ifelse(temp_school$subStudents > 0,
+                                               100 * (temp_school$subStudents / temp_school$subTotal), 0)
+
+  #TODO: find out why this school has no data location data - 132916
+  # school_data %>% arrange(Easting)
+  temp_school <- temp_school %>% filter(Easting != 0)
+
+  #TODO: add area names. add note for anonymised data
+
+  #plotted crosses denote a school that has fewer than 6 students
+  q <- ggplot() +
+    geom_polygon(data=map, aes(x=long, y=lat, group=group), colour='grey', fill='white')
+
+  #plot all schools that have 5 or more students
+  q <- q + geom_point(data=temp_school,
+                      aes(x=Easting, y=Northing, pch="16",
+                          size=subTotal, colour=subTotalWhatPercentage,
+                          palette = "Spectral"),
+                      alpha = 1/3)
+
+  #deal with key and axis
+  q <- q + theme(axis.text.y=element_blank(),
+                 axis.text.x=element_blank(),
+                 axis.title.y=element_blank(),
+                 axis.title.x=element_blank()) +
+    scale_shape_identity() + guides(shape=FALSE)
+
+  return(q)
+}
+
+#scatterplot of results of GCSE and A-level looking for correlations
+drawGtoAScatterPlot <- function(data){
+  line <- lm(KS4_POINTS ~ KS5_POINTS, data)
+  print(coef(line))
+
+  print(summary(line))
+
+  c <- coef(line)
+
+  p <- ggplot(line, aes(x=KS5_POINTS, y=KS4_POINTS, group=KS5_POINTS)) +
+    geom_jitter(shape=1, position=position_jitter(7)) + geom_point() +
+    geom_abline(intercept=coef(line)[1],slope = coef(line)[2],
+                colour="Blue", size=1) +
+    expand_limits(x = 0, y = 0)
+
+  print(p)
+  return(line)
 }
 
 #get yearly teacher training info and map it
@@ -272,122 +473,38 @@ plotTrainingProvider <- function(training_data, subject="Computing"){
   #ggsave(p, file=paste(folder, "graphics/training/", name, "-2015.svg", sep=""), width = 10, height = 8)
 }
 
-#plots results for gender by total students
-plotResultsGenderTotal <- function(subSummary,  title="Computing students"){
+#plots results for a given focus by total/percentage students
+plotResultsbyFocus <- function(subSummary, focus=c("EVERFSM_6"), what="total", title="Computing students"){
+
+  # subSummary <- table_GCSE_student_demographic_summary
+
+  # filter out the NAs
+  cols <- c(focus, "grade")
+
+  # filter out the NAs for focus columns
+  subSummary <- subSummary[complete.cases(subSummary %>% select(cols)),]
+
+  # subSummary %>% filter(is.na(EVERFSM_6))
 
   #get total number of students taking the subject
   total <- sum(subSummary$total)
 
-  data <- subSummary %>% group_by(GENDER,grade) %>%
+  data <- subSummary %>% group_by_(.dots=cols) %>%
     summarise(total = sum(total)) %>%
     mutate(totalGender = sum(total),
            percentage = (total / totalGender)* 100)
 
   data <- anonymiseGraph(data)
 
-  p <- ggplot(data, aes(x=grade, y=total, fill=GENDER)) +
+  p <- ggplot(data, aes_string(x="grade", y=what, fill=focus[1])) +
     geom_bar(position="dodge", stat="identity", colour="black") +
-    scale_y_continuous("Number") + #,breaks=seq(0, max(d$column3), 2)) +
+    scale_y_continuous(what) + #,breaks=seq(0, max(d$column3), 2)) +
     scale_x_discrete("Grade") +
-    geom_text(aes(label=anon,x=grade,y=total),
+    geom_text(aes_string(label="anon",x="grade",y=what),
                  position=position_dodge(width=1), vjust=-0.5) +
     theme(legend.title=element_blank(),
           plot.title = element_text(size=10)) +
     ggtitle(title)#, " ( n = ", total ,")"))
-
-  return(p)
-}
-
-#plots results for gender by percentage
-plotResultsGenderPecentage <- function(subSummary,  title="Computing students"){
-
-
-  #subSummary <- GsubSummary
-
-
-  #get total number of students taking the subject
-  total <- sum(subSummary$total)
-
-  #add percentage values to the table
-  data <- subSummary %>% group_by(GENDER,grade) %>%
-    summarise(total = sum(total)) %>%
-    mutate(totalGender = sum(total),
-           percentage = (total / totalGender)* 100)
-
-  data <- anonymiseGraph(data)
-
-  p <- ggplot(data, aes(x=grade, y=percentage, fill=GENDER)) +
-    geom_bar(position="dodge", stat="identity", colour="black") +
-    scale_y_continuous("Percentage") +
-    scale_x_discrete("Grade") +
-    geom_text(aes(label=anon,x=grade,y=percentage),
-              position=position_dodge(width=1), vjust=-0.5) +
-    theme(legend.title=element_blank(),
-          plot.title = element_text(size=10)) +
-    ggtitle(title) #, " ( n = ", total ,")"))
-
-  return(p)
-}
-
-#plots results for FSM Pupil premium by total
-plotResultsFSMTotal <- function(subSummary,  title="Computing students"){
-
-  #get total number of students taking the subject
-  total <- sum(subSummary$total)
-
-  data <- subSummary %>% group_by(EVERFSM_6,grade) %>%
-    summarise(total = sum(total)) %>%
-    mutate(totalFSM = sum(total),
-           percentage = (total / totalFSM)* 100) %>%
-    filter(!is.na(EVERFSM_6)) %>%
-    rename(`Pupil premium` = EVERFSM_6)
-
-  data <- anonymiseGraph(data)
-
-  p <- ggplot(data, aes(x=grade, y=total, fill=`Pupil premium`)) +
-    geom_bar(position="dodge", stat="identity", colour="black") +
-    scale_y_continuous("Number") +
-    scale_x_discrete("Grade") +
-    geom_text(aes(label=anon,x=grade,y=total),
-              position=position_dodge(width=1), vjust=-0.5) +
-    guides(fill = guide_legend(title = "Pupil\npremium", title.position = "top")) +
-    theme(plot.title = element_text(size=10)) +
-    ggtitle(title)
-
-    #theme(legend.title=element_blank())
-    #ggtitle(paste0(title, " ( n = ", total ,")"))
-
-  return(p)
-}
-
-#plots results for FSM Pupil premium by total
-plotResultsFSMPercentage <- function(subSummary,  title="Computing students"){
-
-  #get total number of students taking the subject
-  total <- sum(subSummary$total)
-
-  # include dropping the NAs for FSM
-  data <- subSummary %>% group_by(EVERFSM_6,grade) %>%
-    filter(!is.na(EVERFSM_6)) %>%
-    summarise(total = sum(total)) %>%
-    mutate(totalFSM = sum(total),
-           percentage = (total / totalFSM)* 100) %>%
-    filter(!is.na(EVERFSM_6)) %>%
-    rename(`Pupil premium` = EVERFSM_6)
-
-  data <- anonymiseGraph(data)
-
-  p <- ggplot(data, aes(x=grade, y=percentage, fill=`Pupil premium`)) +
-    geom_bar(position="dodge", stat="identity", colour="black") +
-    scale_y_continuous("Percentage") +
-    scale_x_discrete("Grade") +
-    geom_text(aes(label=anon,x=grade,y=percentage),
-              position=position_dodge(width=1), vjust=-0.5) +
-    guides(fill = guide_legend(title = "Pupil\npremium", title.position = "top")) +
-    theme(plot.title = element_text(size=10)) +
-    ggtitle(title)
-    #theme(legend.title=element_blank())
-    #ggtitle(paste0(title, " ( n = ", total ,")"))
 
   return(p)
 }
@@ -435,14 +552,18 @@ plotEntriesCohortSizeCluster <- function(data, title = "Computing", level = "GCS
 }
 
 #plot entries for a given subject against the cohort size of each insitution
-plotEntriesCohortSize <- function(data, title = "Computing", line=20){
+plotEntriesCohortSize <- function(data, title = "Computing", subjects, line=19){
 
-  #data <- cohortdata
-  maxX <- data %>% filter(subject == "X2610") %$% max(size)
+  # data <- cohortdata
+  # subjects <- comparison_subjects
 
-  Comyline <- data %>% filter(subject == "X2610", size == line) %$% per
-  ICTyline <- data %>% filter(subject == "X2650", size == line) %$% per
-  Phyyline <- data %>% filter(subject == "X1210", size == line) %$% per
+  # unique(data$subject)
+
+  maxX <- data %>% filter(subject == quo_name(subjects[[1]])) %$% max(size)
+
+  Comyline <- data %>% filter(subject == quo_name(comparison_subjects[[1]]), size == line) %$% per
+  Phyyline <- data %>% filter(subject == quo_name(comparison_subjects[[2]]), size == line) %$% per
+  ICTyline <- data %>% filter(subject == quo_name(comparison_subjects[[3]]), size == line) %$% per
 
   output <- ggplot(data, aes(x=size, y=per, colour=name)) +
     geom_line(stat = "identity") + geom_point() +
@@ -452,16 +573,19 @@ plotEntriesCohortSize <- function(data, title = "Computing", line=20){
     geom_text(aes( 0, line, label = paste0("cohort size = ",round(line,1)),
                    vjust=4, angle=90), colour = "grey30", size = 2.5) +
     geom_hline(aes(yintercept = Comyline)) +
-    geom_text(aes( 0, Comyline, label = paste0(round(Comyline,1),"%"),  vjust = -0.5), colour = "grey30",size = 2.5) +
-    geom_hline(aes(yintercept = ICTyline)) +
-    geom_text(aes( 0, ICTyline, label = paste0(round(ICTyline,1),"%"), vjust = -0.5), colour = "grey30", size = 2.5) +
+    geom_text(aes( 0, Comyline, label = paste0(round(Comyline,1),"%"), vjust = -0.5), colour = "grey30", size = 2.5) +
     geom_hline(aes(yintercept = Phyyline)) +
-    geom_text(aes( 0, Phyyline, label = paste0(round(Phyyline,1),"%"), vjust = -0.5), colour = "grey30", size = 2.5)
+    geom_text(aes( 0, Phyyline, label = paste0(round(Phyyline,1),"%"), vjust = -0.5), colour = "grey30", size = 2.5) +
+    geom_hline(aes(yintercept = ICTyline)) +
+    geom_text(aes( 0, ICTyline, label = paste0(round(ICTyline,1),"%"), vjust = -0.5), colour = "grey30", size = 2.5)
+
 
   return(output)
 }
 
 plotBoxEntriesCohortSize <- function(data, title = "Computing", line=6){
+
+  # data <- box_data
 
   #order by median size
   data <- data %>% ungroup() %>%
@@ -471,7 +595,7 @@ plotBoxEntriesCohortSize <- function(data, title = "Computing", line=6){
     arrange(mdn, SubjectName)
 
   data$SubjectName <- as.vector(data$SubjectName) #get rid of factors
-  data$SubjectName = factor(data$SubjectName,data$SubjectName)
+  data$SubjectName <- factor(data$SubjectName,unique(data$SubjectName))
 
   output <- ggplot(data, aes(SubjectName, size)) +
     geom_boxplot(outlier.shape = NA) +
@@ -490,7 +614,7 @@ plotBoxEntriesCohortSize <- function(data, title = "Computing", line=6){
 #plot entries for a given subject against the number of subjects offered by each insitution
 plotEntriesSubjectNumber <- function(data, title = "Computing", level="GCSE", bar_order){
 
-  data <- output
+  # data <- output
 
   output <- ggplot(data , aes(x = Size, y = Entries, fill="red")) +
     geom_bar(stat = "identity") +
@@ -523,7 +647,7 @@ plotEntriesSubjectNumber <- function(data, title = "Computing", level="GCSE", ba
 
 #a graph showing the subject combinations with a given subject
 plotBarSubjectCombo <-function(SubSummary, spreadResults, subject, name, n=15){
-  # SubSummary<- OutputSubjectGroupCombinations(Gresults15, "X2610")
+  SubSummary<- OutputSubjectGroupCombinations(spreadResults, subject)
   #
   #  spreadResults <- Gresults15
   #  subject <- "X2610"
@@ -573,6 +697,36 @@ plotSubjectsperStudent <- function(summary){
   return(p)
 }
 
+# plot graph showing those subjects with an over representation and those with an under representation of something
+plotComparisonSubjectAgainstAll <- function(comparison, n_subjects=15, name){
+  comparison <- comparison %>% arrange(desc(n)) %>% top_n(n_subjects, wt=n)
+  # print(comparison$n)
+
+
+  # coordinates of upper and lower areas
+  trsup <- data.frame(x=c(0,0,100),
+                      y=c(0,100,100))
+  trinf <- data.frame(x=c(0,100,100),
+                      y=c(0,0,100))
+
+  p <- ggplot(comparison, aes(x= all, y = subject)) +
+    geom_point(aes(colour=ifelse(all > subject, 'red', 'green'))) +
+    guides(colour=FALSE) +
+    geom_text_repel(aes(all, subject,
+                        label=as.character(MAPPING_DESCRIPTION))) +
+  # geom_abline(intercept = 0, slope = 1) +
+    geom_segment(aes(x = 0, y = 0, xend = 100, yend = 100)) +
+    geom_polygon(aes(x=x, y=y), data = trsup, fill="#00FF0033") +
+    geom_polygon(aes(x=x, y=y), data = trinf, fill="#FF000033") +
+    coord_cartesian(xlim=c(0,max(comparison$all)),
+                    ylim=c(0,max(comparison$subject))) +
+    theme(plot.margin = unit(c(0,0,0,0), "cm")) #+  # gets rid of the padding around the plot
+    #ggtitle(name)
+
+  return(p)
+}
+
+
 plotEntriesLongitudinal <- function(data){
 
   p <- ggplot(data=data, aes(x=Year,y=value, group=focus, colour=focus)) + geom_line() +
@@ -617,6 +771,7 @@ plotEntriesPercentage <- function(overall, what="GENDER", by="F", plot){
 }
 
 
+
 #########
 ##GRAPHS COMBINING MULTIPLE SUBJECTS
 #########
@@ -624,12 +779,13 @@ plotEntriesPercentage <- function(overall, what="GENDER", by="F", plot){
 #plot comparisons of subjects for a given factor e.g. gender/FSM/Idaci
 plotSubjectComparisonSingleItem <- function(subTotals,
                                             focus="X2610",
-                                            type="IDACI",
+                                            type="FSM",
                                             title="Computing IDACI comparison",
-                                            key="Pupil\npremium",
+                                            key="Pupil premium",
                                             label="Average IDACI intake"){
 
-  #subTotals <- GsubTotals
+  #subTotals <- table_GCSE_student_taking_fsm
+  #subTotals <- subject_sizes
 
   if(type=="IDACI"){
     decimals <- 3
@@ -637,23 +793,29 @@ plotSubjectComparisonSingleItem <- function(subTotals,
     decimals <- 1
   }
 
+  # rename the 'mean' field if present
+  if(sum(grepl("mean",names(subTotals))) > 0){
+    # print("renaming")
+    subTotals <- rename(subTotals, Average = mean)
+  }
+
   #subTotals <- temp
   #order dataframe
-  subTotals <- subTotals %>% arrange(mean)
+  subTotals <- subTotals %>% arrange(Average)
   subTotals$SubjectName <- as.vector(subTotals$SubjectName)
-  subTotals$SubjectName <- factor(subTotals$SubjectName,subTotals$SubjectName)
+  subTotals$SubjectName <- factor(subTotals$SubjectName, unique(subTotals$SubjectName))
 
-  p <- ggplot(data=subTotals, aes(x=SubjectName, y=mean)) +
+  p <- ggplot(data=subTotals, aes(x=SubjectName, y=Average)) +
     geom_bar(position="dodge", stat="identity", colour="black",
              fill=ifelse(subTotals$SubjectName=="ALL", "black","grey53")) +
     scale_y_continuous(label) +
     scale_x_discrete(NULL) + #get rid of X axis label
-    geom_text(aes(label=format(round(mean,decimals), nsmall=decimals),
+    geom_text(aes(label=format(round(Average,decimals), nsmall=decimals),
                   angle = 90, hjust = 1.2), vjust=0.35, colour="white") +
     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=-0.005)) +
     geom_bar(data=subTotals, aes(x=SubjectName, y=Highlight),
              position="dodge", stat="identity", fill="royalblue4") +
-    geom_text(aes(label=format(round(mean,decimals), nsmall=decimals),
+    geom_text(aes(label=format(round(Average,decimals), nsmall=decimals),
                   angle = 90, hjust = 1.2), vjust=0.35, colour="white") +
     guides(fill = guide_legend(title = key, title.position = "top"))
     #ggtitle(title)
@@ -673,11 +835,12 @@ plotSubjectComparisonDoubleItem <- function(subTotals,
                                             key="Pupil\npremium",
                                             label="Avg IDACI score of entry"){
 
+  # subTotals <- temp
 
   #TODO: order this!
   subTotals <- subTotals %>% arrange(Average)
   subTotals$SubjectName <- as.vector(subTotals$SubjectName)
-  subTotals$SubjectName <- factor(subTotals$SubjectName,subTotals$SubjectName)
+  subTotals$SubjectName <- factor(subTotals$SubjectName,unique(subTotals$SubjectName))
 
   p <- ggplot() +
     geom_bar(data=subTotals,
@@ -742,10 +905,163 @@ plotEthnicityPercentageAllSubs <- function(spreadResults, Ethnicity, EthName, su
   GsubTotals$Highlight <- 100 * GsubTotals$Highlight
 
   p <- plotSubjectComparisonSingleItem(GsubTotals,
-                                  "X2610",
+                                  subject,
                                   "EthMaj",
                                   "Non pupil premium C and above",
                                   "Pupil\npremium",
                                   paste0("% Ethnically " , EthName, " students"))
   return(p)
 }
+
+
+####OLD#####
+#Map GCSE results to A-Level results
+drawGCSEtoAlevel <- function()
+{
+  #get GCSE results
+  GCSEresults <- loadResults(12, "KS4")
+
+  #get A-Level results
+  #ALresults <- loadResults(13, "KS5")
+
+  #####temp ALevel results from python script
+  filename <- paste(folder, "KS5Results_2014.txt",sep="")
+  ALresults <- read.csv(filename, head=FALSE, sep=",")
+  colnames(ALresults) <- c("KS5_GRADE","QAN","DiscCode Name","KS5_MAPPING",
+                           "KS5_PupilMatchingRefAnonymous","KS5_EXAMYEAR","Gender",
+                           "qual type AS AA","FSM","KS4_SENPS","KS4_SENA","KS4_IDACI",
+                           "EthnicGroupMinor_SPR14","EthnicGroupMajor_SPR14","FSMelible_SPR14",
+                           "SENprovision_SPR14","SENprovisionMajor_SPR14","KS3_ENGTALEV",
+                           "KS3_MATTALEV","KS3_SCITALEV","KS5_URN")
+
+  #   ALresults$KS5_POINTS[ALresults$KS5_GRADE == "*"] <- 140
+  #   ALresults$KS5_POINTS[ALresults$KS5_GRADE == "A"] <- 120
+  #   ALresults$KS5_POINTS[ALresults$KS5_GRADE == "B"] <- 100
+  #   ALresults$KS5_POINTS[ALresults$KS5_GRADE == "C"] <- 80
+  #   ALresults$KS5_POINTS[ALresults$KS5_GRADE == "D"] <- 60
+  #   ALresults$KS5_POINTS[ALresults$KS5_GRADE == "E"] <- 40
+  #   ALresults$KS5_POINTS[ALresults$KS5_GRADE == "U"] <- 0
+
+  ALresults$KS5_POINTS[ALresults$KS5_GRADE == "*"] <- 70
+  ALresults$KS5_POINTS[ALresults$KS5_GRADE == "A"] <- 60
+  ALresults$KS5_POINTS[ALresults$KS5_GRADE == "B"] <- 50
+  ALresults$KS5_POINTS[ALresults$KS5_GRADE == "C"] <- 40
+  ALresults$KS5_POINTS[ALresults$KS5_GRADE == "D"] <- 30
+  ALresults$KS5_POINTS[ALresults$KS5_GRADE == "E"] <- 20
+  ALresults$KS5_POINTS[ALresults$KS5_GRADE == "U"] <- 0
+}
+
+
+
+####OLD####
+#draw a graph showing other subjects taken with subject d (if specified as vector)
+drawBarSubjectCombo <-function(SubSummary, d=NULL)
+{
+  #determine whether to print one or more subjects
+  if(is.null(d)){
+    DiscCodes <- unique(SubSummary$MAPPING)
+  } else {
+    DiscCodes <- d
+  }
+
+  #get totals for each other subject taken with subject d by gender
+  data <- SubSummary %>%
+    select(OrigID, MAPPING, GENDER, total) %>%
+    group_by(OrigID, MAPPING, GENDER) %>%
+    summarise(gentotal = sum(total)) %>%
+    ungroup() %>%
+    arrange(OrigID, desc(gentotal))
+
+  #get DiscCode names
+  DiscCodes <- loadDiscMappings()
+
+  #map orig sub names to IDs
+  data <- left_join(data, DiscCodes, c("OrigID"="MAPPING"))
+  colnames(data)[which(names(data) == "MAPPING_DESCRIPTION")] <- "OrigName"
+
+  #map matching sub names to IDs
+  data <- left_join(data, DiscCodes)
+  colnames(data)[which(names(data) == "MAPPING_DESCRIPTION")] <- "MapName"
+
+  for(d in unique(data$OrigID))
+  {
+    #d = "1110"
+    print(d)
+    graph_data <- data %>%
+      filter(OrigID != MAPPING, OrigID == d) %>%
+      arrange(OrigID, desc(gentotal))
+
+    temp <- graph_data %>%
+      group_by(MAPPING) %>%
+      summarise(mappingtotal = sum(gentotal))
+
+    graph_data <- merge(graph_data, temp) %>%
+      ungroup() %>%
+      arrange(desc(mappingtotal), GENDER) %>%
+      filter(row_number() <= 20)
+
+    graphdeatils <- data %>%
+      filter(OrigID == d,  MAPPING == d) %>%
+      summarise(grandtotal = sum(gentotal), name = unique(OrigName), ID = unique(OrigID))
+
+    graphdeatils$name <- gsub("[^A-Za-z0-9]", "", graphdeatils$name)
+
+
+    head(graph_data)
+
+    graph_data$percentage <- round((graph_data$gentotal / graphdeatils$grandtotal) * 100,1)
+    graph_data <- graph_data[order(-graph_data$mappingtotal),]
+
+    p <- ggplot(graph_data,
+                aes(x = MapName, y = gentotal, fill=GENDER)) +
+      geom_bar(stat="identity") +
+      geom_text(aes(label=percentage)) +
+      scale_y_continuous("Number taking both") +
+      scale_x_discrete("Subjects combined", limits=factor(graph_data$MapName)) +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1),
+            plot.title = element_text(size=10)) +
+      ggtitle(paste(graphdeatils$ID, " ", graphdeatils$name, " (n = ", graphdeatils$grandtotal ,") subject combinations", sep=""))
+
+    fname <- paste(folder, "graphics/combos/", year, " ", graphdeatils$ID, " ", graphdeatils$name, ".svg", sep="")
+
+    ggsave(p, file=fname)
+  }
+}
+
+
+
+####OLD####
+plotHeatMap <- function(map, name, total, level, year, ID, location)
+{
+  print(paste(name, ID))
+
+  p <- ggplot(map, aes(x=long, y=lat, group=group, fill=Percentage)) +
+    geom_polygon() +
+    scale_fill_distiller(palette = "Spectral", name="Totals") +
+    theme_bw() +
+    ggtitle(paste(level, name, " - ", total))
+
+  ggsave(p, file=paste(folder, "graphics/", name, " ", level, " ", year, ".svg", sep=""), width = 10, height = 10)
+}
+
+#print a graph of results
+printResults <- function(data, DiscName, discID, year, level, type, bar_order, w)
+{
+  print(paste(DiscName, discID, year, type, w))
+  #print(data)
+
+  p <- ggplot(data, aes(x=grade, y=percentage, fill=type)) +
+    geom_bar(position="dodge", stat="identity", colour="black") +
+    scale_y_continuous("Percentage") +
+    scale_x_discrete(limits = bar_order) +
+    geom_text(aes(label=count,x=grade),
+              position=position_dodge(width=0.9), vjust=-0.5) +
+    ggtitle(paste(DiscName, " (", discID ,") subject results", sep=""))
+  print(p)
+
+  filename <- paste(folder, "graphics/results/", year, level, DiscName, " ", type, ".svg", sep="")
+  #print(filename)
+  ggsave(p, file=filename, width=w)
+}
+
+
