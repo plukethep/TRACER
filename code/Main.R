@@ -49,11 +49,15 @@ Main <- function(years = c(12:17), keystages = c("KS4", "KS5")){
     }
     if(keystage == "KS5"){
       # build up matching KS4 data to fill in missing fields
-      for (yr in years){
-        AllGCSEStudents[[yr]] <- get(paste0("Students_GCSE_",yr))
-        AllGCSEResults[[yr]] <- get(paste0("Results_GCSE_",yr))
-      }
+      
       match_old = FALSE
+      if(match_old){
+        for (yr in years){
+          AllGCSEStudents[[yr]] <- get(paste0("Students_GCSE_",yr))
+          AllGCSEResults[[yr]] <- get(paste0("Results_GCSE_",yr))
+        }
+      }
+
       level <- c(111)
       QualName <- "Alevel"
       what_to_match_person <- list("EthMaj" = "EthMaj",
