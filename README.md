@@ -15,29 +15,30 @@ The code base will currently allow you to:
 1. Pull TRACER from github
 2. follow instructions in __/data__ folder to download
     * __../students__ NPD student datasets (restricted DfE data). Rename files as follows:
-        - KS4: KS4Pupil_YEAR_Census e.g. KS4Pupil_2012_Census
-        - KS5: KS5CandInd_YEAR_KS4_KS3_Census e.g. KS5CandInd_2012_KS4_KS3_Census
+        - KS4: KS4Pupil_YEAR_Census e.g. _KS4Pupil_2012_Census_
+        - KS5: KS5CandInd_YEAR_KS4_KS3_Census e.g. _KS5CandInd_2012_KS4_KS3_Census_
     * __../results__ NPD results datasets (restricted DfE data). Rename files as follows:
-        - KS4: KS4Results_YEAR e.g. KS4Results_2012.txt
-        - KS5: KS5Results_YEAR e.g. KS5Results_2015.txt
+        - KS4: KS4Results_YEAR e.g. _KS4Results_2012.txt_
+        - KS5: KS5Results_YEAR e.g. _KS5Results_2015.txt_
     * __../schools__ Most recent snapshot of Edubase provider list from: http://www.education.gov.uk/edubase/home.xhtml
-        * rename the file provided by Edubase as schools.csv
+        * rename the file provided by Edubase to _schools.csv_
     * __../qualifications__ Most recent JCQ snapshot of xxxxx
-        
+    * __../postcodes__ get up to date postcode information from [ordnancesurvey](https://www.ordnancesurvey.co.uk/opendatadownload/products.html), combine all the letters into one large csv file called _postcodes.csv_. [Instructions](http://webpierat.com/2011/05/23/merging-csv-files-using-the-command-line/) on how to do this with command line. (see [also](https://www.r-bloggers.com/gb-postcode-polygons-open-data/))
     * __../maps__ 
-        * updated postcode information from [ordnancesurvey](https://www.ordnancesurvey.co.uk/opendatadownload/products.html), combine all the letters into one large csv file called _postcodes.csv_. [Instructions](http://webpierat.com/2011/05/23/merging-csv-files-using-the-command-line/) on how to do this with command line. (see [also](https://www.r-bloggers.com/gb-postcode-polygons-open-data/))
         * regional map of England from [sharegeo](https://www.sharegeo.ac.uk/handle/10672/50)
         * local education authority map of England from [statistics.gov.uk](http://geoportal.statistics.gov.uk/datasets/c4a62d87de9f4b6087cf5f1515d5a0c1_0?geometry=-8.141%2C54.005%2C4.933%2C55.897&uiTab=table&orderByFields=ctyua14nm+ASC_)
         * coastal map of England from [divagis](http://www.diva-gis.org/datadown)
-    * __../filters__ results.json and students.json files allow you to specify which fields you wish to pull from the DfE provided datasets. The format is: 
+    * __../filters__ _results.json_ and _students.json_ files allow you to specify which fields you wish to pull from the DfE provided datasets. The format is: 
 ```
      { Keystage :{ 
               Year :{ 
-                   "grep string to match DFE field name" : "cleaned field name" 
+                   "grep string to match DFE field name" : "cleaned field name" e.g.
+                   "KS4_URN$" : "URN",
               },
      },
     }
 ```
+
 3. create cleaned versions of the student and results by running the following commands in __/code/Main.R__
    * First load all the ```source("...")``` files, this will provide the commands needed to clean the datasets
    * Second run ```Main(years, keystages)```, where ```years``` stores the two digit year numbers as a vector, and ```keystages``` lists which keystages you want to clean. For example: ```Main(years = c(12:17), keystages = c("KS4","KS5"))``` 
