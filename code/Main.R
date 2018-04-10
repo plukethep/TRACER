@@ -53,7 +53,7 @@ Main <- function(years = c(12:17), keystages = c("KS4", "KS5")){
         AllGCSEStudents[[yr]] <- get(paste0("Students_GCSE_",yr))
         AllGCSEResults[[yr]] <- get(paste0("Results_GCSE_",yr))
       }
-      match_old = TRUE
+      match_old = FALSE
       level <- c(111)
       QualName <- "Alevel"
       what_to_match_person <- list("EthMaj" = "EthMaj",
