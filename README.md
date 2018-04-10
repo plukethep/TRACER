@@ -20,7 +20,7 @@ The code base will currently allow you to:
     * __../results__ NPD results datasets (restricted DfE data). Rename files as follows:
         - KS4: KS4Results_YEAR e.g. _KS4Results_2012.txt_
         - KS5: KS5Results_YEAR e.g. _KS5Results_2015.txt_
-    * __../schools__ Most recent snapshot of Edubase provider list from: http://www.education.gov.uk/edubase/home.xhtml allowing you to pull information on school demographics
+    * __../schools__ Most recent snapshot of Edubase provider list from: https://get-information-schools.service.gov.uk/Downloads allowing you to pull information on school demographics
         * rename the file provided by Edubase to _schools.csv_
     * __../qualifications__ discount codes to map to results information. Document available from www.gov.uk/government/publications/2018-performance-tables-discount-codes. Download and store as: _SUBLEVNO.csv_
     * __../postcodes__ get up to date postcode information from [ordnancesurvey](https://www.ordnancesurvey.co.uk/opendatadownload/products.html), combine all the letters into one large csv file called _postcodes.csv_. [Instructions](http://webpierat.com/2011/05/23/merging-csv-files-using-the-command-line/) on how to do this with command line. (see [also](https://www.r-bloggers.com/gb-postcode-polygons-open-data/))
