@@ -5,7 +5,6 @@ source(paste0(codefolder,'Collation.R'))
 source(paste0(codefolder,'Graphs.R'))
 source(paste0(codefolder,'Loading.R'))
 source(paste0(codefolder,'Tables.R'))
-source(paste0(codefolder,'Statistics.R'))
 source(paste0(codefolder,'PrettyPrinting.R')) 
 
 # clean the datasets, clean data will go into TRACER/data/cleaned
