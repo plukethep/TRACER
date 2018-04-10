@@ -3,12 +3,12 @@
 TRACER is a code base for cleaning and analysing the [DfE's National Pupil Database](https://www.gov.uk/government/collections/national-pupil-database) (NPD). It is written entirely in R.
 
 The code base will currently allow you to:
- - import KS4 and KS5 data for 2011-17.
+ - import KS4 and KS5 data for 2011-17,
  - import data on Ethnicity (Maj|Min), Pupil Premium, IDACI, Gender, Provider Descriptions, EAL flag, SEN flag, 
- - match data between years to complete missing values (e.g. fields missing in KS5 that are present in KS4).
- - produce standard tables to represent uptake of subjects based on any given criteria.
- - automatically anonymise datasets.
- - a range of graphs and maps to represent provision and outcomes based on given criteria.
+ - match data between years to complete missing values (e.g. fields missing in KS5 that are present in KS4),
+ - produce standard tables to represent uptake of subjects based on any given criteria,
+ - automatically anonymise output tables,
+ - ouput a range of graphs and maps to represent provision and outcomes based on given criteria.
  
 ## Installation
 
@@ -20,9 +20,9 @@ The code base will currently allow you to:
     * __../results__ NPD results datasets (restricted DfE data). Rename files as follows:
         - KS4: KS4Results_YEAR e.g. _KS4Results_2012.txt_
         - KS5: KS5Results_YEAR e.g. _KS5Results_2015.txt_
-    * __../schools__ Most recent snapshot of Edubase provider list from: http://www.education.gov.uk/edubase/home.xhtml
+    * __../schools__ Most recent snapshot of Edubase provider list from: http://www.education.gov.uk/edubase/home.xhtml allowing you to pull information on school demographics
         * rename the file provided by Edubase to _schools.csv_
-    * __../qualifications__ Most recent JCQ snapshot of xxxxx
+    * __../qualifications__ discount codes to map to results information. Document available from www.gov.uk/government/publications/2018-performance-tables-discount-codes. Download and store as: _SUBLEVNO.csv_
     * __../postcodes__ get up to date postcode information from [ordnancesurvey](https://www.ordnancesurvey.co.uk/opendatadownload/products.html), combine all the letters into one large csv file called _postcodes.csv_. [Instructions](http://webpierat.com/2011/05/23/merging-csv-files-using-the-command-line/) on how to do this with command line. (see [also](https://www.r-bloggers.com/gb-postcode-polygons-open-data/))
     * __../maps__ 
         * regional map of England from [sharegeo](https://www.sharegeo.ac.uk/handle/10672/50)
@@ -42,6 +42,14 @@ The code base will currently allow you to:
 3. create cleaned versions of the student and results by running the following commands in __/code/Main.R__
    * First load all the ```source("...")``` files, this will provide the commands needed to clean the datasets
    * Second run ```Main(years, keystages)```, where ```years``` stores the two digit year numbers as a vector, and ```keystages``` lists which keystages you want to clean. For example: ```Main(years = c(12:17), keystages = c("KS4","KS5"))``` 
+   * This process will produce three new datasets:
+       - Spreads - one row per student, columns give demographic, schools and results data. Inefficient, but easy to use. only covers GCSE and Alevel data
+       - Students - clean students only listing information specified by the _/filters_
+       - Results - clean students only listing information specified by the _/filters_
+   * If you have already cleaned the data, you can load the cleaned datasets into RAM by running: ```initialiseDataFrames(keystage, level,  two_digit_year)``` e.g. ```initialiseDataFrames("KS4", "GCSE", 17)```, this would create:
+       - Spread_GCSE_17
+       - Students_GCSE_17
+       - Results_GCSE_17
 4. create any reports in __/reports__ folder (see _How to write a report_ below)
 5. any updates to the code, consider comitting back to github
 
