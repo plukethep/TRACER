@@ -1,5 +1,5 @@
 # WARNING: you must load functions from these files before running main command
-codefolder <- getwd()
+codefolder <- paste0(getwd(),"/")
 source(paste0(codefolder,'Tools.R'))
 source(paste0(codefolder,'Collation.R'))
 source(paste0(codefolder,'Graphs.R'))
