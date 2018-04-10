@@ -1,0 +1,146 @@
+{
+	"KS4":{
+		"2017":{	
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS$":"POINTS"
+		},
+		"2016":{	
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS$":"POINTS"
+		},
+		"2015":{	
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		},
+		"2014":{	
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		},
+		"2013":{	
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		},
+		"2012":{	
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		},
+		"2011":{	
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		}
+	},
+	"KS5":{
+		"2017":{
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"GNUMBER":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS$":"POINTS"
+		},
+		"2016":{
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"GNUMBER":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS$":"POINTS"
+		},
+		"2015":{
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		},
+		"2014":{
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		},
+		"2013":{
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		},
+		"2012":{
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		},
+		"2011":{
+				"PupilMatchingRefAnonymous":"PupilMatchingRefAnonymous",
+				"_URN$":"URN",
+				"EXAMYEAR":"EXAMYEAR",
+				"SUBLEVNO":"SUBLEVNO",
+				"QAN":" QAN",
+				"MAPPING":"MAPPING",
+				"GRADE":"GRADE",
+				"POINTS":"POINTS"
+		}
+	}
+}
