@@ -284,6 +284,48 @@ completeMissingData <- function(Destination, Source, Column, NewName, year_dest,
   return(temp)
 }
 
+# matches fields to a KS5 table from GCSE results, returning the highest grade for each student it finds
+matchFieldsBetweenYears_RAM <- function(data_to, field="X2210", new_name="GCSE_maths", year_range=c(14:17)){
+  # data_to <- Spread_Alevel_17
+  
+  # get URN from 2017
+  IDs <- data_to$PupilMatchingRefAnonymous
+  
+  # cycle through each year
+  missing_data <- data.frame()
+  for (yr in year_range){
+    # yr <- 14
+    df <- get(paste0("Spread_GCSE_",yr))
+
+    # get all GSCE_Maths data for a given student
+    match_results <- df %>% select(PupilMatchingRefAnonymous,!!field) 
+    names(match_results) <- c("PupilMatchingRefAnonymous", "grade")
+    
+    match_results <- match_results %>%
+      filter(PupilMatchingRefAnonymous %in% IDs,
+             !is.na(grade)) %>%
+      mutate(Year = yr)
+    message("=== 20", yr, " - ", field, " matches: ", nrow(match_results))
+    
+    # print(unique(match_results$grade))
+    # match_results %>% group_by(grade) %>% summarise(n = n())
+    
+    # convert grades into 1-8 format
+    match_results <- convertGrades(match_results, "GCSE")
+    match_results <- convertGrades_letter_to_number(match_results, "GCSE")
+    # print(unique(match_results$grade))
+    
+    missing_data <- rbind(missing_data, match_results)
+  }
+  
+  missing_data <- missing_data %>% group_by(PupilMatchingRefAnonymous) %>% summarise(GCSE_maths = max(grade))
+  
+  names(missing_data) <- c("PupilMatchingRefAnonymous", new_name)
+  
+  # data_to <- left_join(data_to, missing_data)
+  return(missing_data)
+}
+
 # uses the above function to build a more complete dataframe
 # used in particular to complete missing data in KS5 return
 matchFieldsBetweenYears <- function(destination = "Alevel",

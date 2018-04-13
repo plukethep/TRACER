@@ -601,9 +601,9 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
   # type <- "type"
   # grades <- TRUE
 
-  # data = Spread_GCSE_16
+  # data = Spread_GCSE_17
   # subject = subject_code
-  # type = "region"
+  # type = "lea"
   # grades = TRUE
 
 
@@ -722,9 +722,11 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
 
   ##### Independent vs Selective vs Non Selective
   if(type == "selective"){
-    df <- df %>% mutate(schType = ifelse(regexpr("inde", schType) != -1, "Independent",
-                                         ifelse(regexpr("Selective", selective) != -1, "Grammar school",
-                                                "State non-selective"))) %>%
+    df <- df %>% mutate(selective = ifelse(is.na(selective), "", selective),
+                          schType = ifelse(regexpr("special", schType) != -1, "Special",
+                                           ifelse(regexpr("inde", schType) != -1, "Independent",
+                                                  ifelse(regexpr("Selective", selective) != -1, "Grammar",
+                                                         "Comprehensive")))) %>%
       select(-selective, -schUrban, -URN) %>%
       group_by(schType) %>%
       arrange(schType) %>%
@@ -833,16 +835,16 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
   }
 
   #add percentages
-  df <- df %>%  mutate("% Schools"=round(100*(SubTotalSchools/SchTypeTotalSchools), digits = 1) ,
-                       "% Students"=round(100*(SubTotalStudents/SchTotalStudents), digits = 1),
+  df <- df %>%  mutate("% Schools"=printper0((SubTotalSchools/SchTypeTotalSchools), d = 1) ,
+                       "% Students"=printper0((SubTotalStudents/SchTotalStudents), d = 1),
                        "AverageCohort" = ifelse(!is.finite(SubTotalStudents/SubTotalSchools), 0,
-                                                round(SubTotalStudents/SubTotalSchools, digits = 1)),
+                                                printper(SubTotalStudents/SubTotalSchools, d = 1)),
                        "Grade Avg Sch" = ifelse(!is.finite(SchTotalGrade/SchTotalStudents), 0,
-                                                round(SchTotalGrade/SchTotalStudents, digits = 1)),
+                                                printper(SchTotalGrade/SchTotalStudents, d = 1)),
                        "Grade Avg Sub Stu" = ifelse(!is.finite(SubStuAllGrades/SubTotalStudents), 0,
-                                                    round(SubStuAllGrades/SubTotalStudents, digits = 1)),
+                                                    printper(SubStuAllGrades/SubTotalStudents, d = 1)),
                        "Grade Avg Sub" = ifelse(!is.finite(SubTotalGrade/SubTotalStudents), 0,
-                                                round(SubTotalGrade/SubTotalStudents, digits = 1))
+                                                printper(SubTotalGrade/SubTotalStudents, d = 1))
   )
 
   #add tally row at the bottom of the dataframe
@@ -960,7 +962,7 @@ OutputTableByYearlyData <- function(data_name, grouping, measure, items, year_ra
      # yr <- ""
      # full_year <- "2012"
      # print(paste(yr, full_year))
-     print(paste0(data_name, yr))
+     # message(paste0(data_name, yr))
 
      # a <- get(paste0(data_name, "")) %>% select(grouping, measure) %>% ungroup()    # %>% filter(get(grouping) %in% items)
      # b <- get(paste0(data_name, "_16")) %>% select(grouping, measure) %>% ungroup() # %>% filter(get(grouping) %in% items)
@@ -1139,13 +1141,15 @@ OutputRegionSummary <- function(spreadResults, subject){
 }
 
 OutputEBACCSummary <- function(spreadResults, subject="X2610"){
-  #spreadResults <- Gresults15
+
+  # Subejct == "ALL" returns all students
+    # spreadResults <- Spread_GCSE_17
 
   #make a vector of science subjects
   # X1110	Chemistry
   # X1210	Physics
   # X1300	Science (Core)
-  # X1310	Science SA              #only X students sat this in 2015
+  # X1310	Science SA              #only X students sat this in 2015, 6 in 2016, 0 in 2017
   # X1320	Science (Additional)
   # X1330	Science: Dual Award A   #no entries 2015
   # 1350	Science: Dual Award B   #no entries 2015
@@ -1158,27 +1162,72 @@ OutputEBACCSummary <- function(spreadResults, subject="X2610"){
   # 1030	Biology: Human                #no entries 2015
   # 1050	Biology: Social               #no entries 2015
   # 1060	Biology: Human & Social       #no entries 2015
-
-
+  
+  # 2017 subject list
+  # subs <- c("X1110",  "X1210",  "X1300",  "X1310",  "X1320",  "X1330",  "X1350",  "X1370",  "X1390",  "X1410", "X1450",  "X1470",  "X1010",  "X1030",  "X1050",  "X1060")
+  # subs <- c("X1010", "X1110", "X1210", "X1300", "X1320")
+  # Spread_GCSE_17 %>% select_(.dots=subs) %>% mutate_all(funs(ifelse(!is.na(.),1,NA))) %>% gather(subject, result, na.rm=TRUE) %>% group_by(subject) %>% summarise(n = sum(result))
+  # names(spreadResults)[names(spreadResults) %in% subs]
+  
   sciences <- c("X2610","X1010","X1110","X1210","X1300","X1320")
 
   #convert the dataframe to record 1 for a c or above, and 0 otherwise
-    temp <- spreadResults %>% select_(.dots=sciences) %>%
-    mutate_each(funs(ifelse(.>=40,1,0))) %>%
-    mutate(attemptcoreadd = !is.na(X1300) & !is.na(X1320),
-           coreadd = ifelse(is.na(X1300) | is.na(X1320), FALSE,
+  temp <- spreadResults %>% select_(.dots=sciences) %>%
+    mutate_all(funs(ifelse(.>=4,1,0))) %>%
+    mutate(attempt_coreadd = !is.na(X1300) & !is.na(X1320),
+           passed_coreadd = ifelse(is.na(X1300) | is.na(X1320), FALSE,
                             ifelse(X1300 == 1 & X1320 == 1,TRUE,FALSE)),
-           attemptsingles = ifelse(rowSums(!is.na(.[c("X2610","X1010","X1110","X1210")])) >=3, TRUE, FALSE),
-           passedsingles = ifelse(rowSums(.[c("X2610","X1010","X1110","X1210")],na.rm=TRUE) >= 2 &
-                                    attemptsingles,TRUE,FALSE),
-           singlestaken = rowSums(!is.na(.[c("X2610","X1010","X1110","X1210")]))
+           attempt_singles = ifelse(rowSums(!is.na(.[c("X2610","X1010","X1110","X1210")])) >=3, TRUE, FALSE),
+           passed_singles = ifelse(rowSums(.[c("X2610","X1010","X1110","X1210")],na.rm=TRUE) >= 2 &
+                                    attempt_singles,TRUE,FALSE),
+           singles_taken = rowSums(!is.na(.[c("X2610","X1010","X1110","X1210")]))
     )
+    
+    
 
     #temp %>% filter(!is.na(X2610), singlestaken == 3) %>% summarise(n = n())
 
-  temp <- temp %>% group_by(X2610,attemptsingles,passedsingles,singlestaken) %>% summarise(n=n())
+  if(subject == "ALL"){
+    focus = "X2610"
+  }else{
+    focus = "X2610"
+  }
+  
+  
+  temp <- temp %>% 
+    group_by((!!sym(focus)), attempt_singles, passed_singles, singles_taken, attempt_coreadd, passed_coreadd) %>% 
+    summarise(n=n()) %>% 
+    ungroup()
+  
+  names(temp) <- c("Subject", "attempt_singles", "passed_singles", "singles_taken", "attempt_coreadd", "passed_coreadd",  "n")
+  
+  temp <- temp %>%
+    group_by(Subject) %>% 
+    mutate(total = sum(n)) %>%
+    ungroup()
+  
+  if(subject != "ALL"){
+    temp <- temp %>%
+      filter(!is.na(Subject))
+  }
+  
+  temp <- temp %>%
+    summarise(singles_4 = sum(ifelse(singles_taken == 4,n,0)),
+              singles_3 = sum(ifelse(singles_taken == 3,n,0)),
+              passed_singles = sum(ifelse(passed_singles,n,0)),
+              attempt_coreadd =  sum(ifelse(attempt_coreadd,n,0)),
+              passed_coreadd =  sum(ifelse(passed_coreadd,n,0)),
+              total = sum(unique(total)),
+              singles_per = printper0((singles_4 + singles_3) / total),
+              core_per = printper0((attempt_coreadd) / total),
+              singles_4_per = printper0(singles_4 / total),
+              singles_3_per = printper0(singles_3 / total))
 
-  #TODO: get this to work for other sciences
+  
+  
+  # TODO: get results on core science in addition to single science
+  # TODO: check that no other double science awards appear anywhere
+  # temp %>% filter(!is.na(Subject), attemptsingles == TRUE)
 
   #get an A* to C in core and additional science GCSE (in core and additional science, pupils take 2 modules in each of the 3 main sciences: biology, chemistry and physics)
   #take 3 single sciences at GCSE and get an A* to C in at least 2 of them (the single sciences are biology, chemistry, computer science and physics)

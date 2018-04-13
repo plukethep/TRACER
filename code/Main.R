@@ -1,15 +1,22 @@
-# WARNING: you must load functions from these files before running main command
-codefolder <- paste0(getwd(),"/")
-source(paste0(codefolder,'Tools.R'))
-source(paste0(codefolder,'Collation.R'))
-source(paste0(codefolder,'Graphs.R'))
-source(paste0(codefolder,'Loading.R'))
-source(paste0(codefolder,'Tables.R'))
-source(paste0(codefolder,'PrettyPrinting.R')) 
+year <- 16
+yr <- 16
+keystage <- "KS5"
+level <- c(310,311,320)
+year_range <- c(12:17)
 
-# clean the datasets, clean data will go into TRACER/data/cleaned
+# populate spreadResults for further analysis
 # WARNING: this takes 30-60 minutes
-Main(years = c(12:17), keystages = c("KS4","KS5"))
+Main(keystages = c("KS5"))
+
+Main(c(12:17), c("KS4","KS5"))
+
+
+setwd(basefolder)
+
+Main(c(17), c("KS5"), TRUE, n=0)
+initialiseDataFrames("KS5", "Alevel", "17")
+
+Spread_Alevel_17$
 
 #load the data into RAM
 for(yr in year_range){
@@ -19,9 +26,31 @@ for(yr in year_range){
   initialiseDataFrames("KS5", "Alevel", as.character(yr))
 }
 
+
+# get URN from 2017
+IDs <- Spread_Alevel_17$PupilMatchingRefAnonymous
+
+# cycle through each year
+missing_data <- data.frame()
+for (yr in year_range){
+
+  df <- get(paste0("Spread_GCSE_",yr))
+  # get all GSCE_Maths data for a given student
+  match_results <- df %>% select(PupilMatchingRefAnonymous,X2210) %>%
+                          filter(PupilMatchingRefAnonymous %in% IDs,
+                                !is.na(X2210)) %>%
+                          mutate(Year = yr)
+  
+  missing_data <- rbind(missing_data, match_results)
+}
+
+missing_data <- missing_data %>% group_by(PupilMatchingRefAnonymous) %>% summarise(GCSE_maths = max(X2210))
+
+left_join(Spread_Alevel_17, missing_data)
+
 # initiliase all the cleaned dataframes into cleaned folder
 # make spread using clean students and clean results
-Main <- function(years = c(12:17), keystages = c("KS4", "KS5")){
+Main <- function(years = c(12:17), keystages = c("KS4", "KS5"), match_KS5= FALSE, n=0){
 
   message("loading all data for years:", years)
 
@@ -49,15 +78,14 @@ Main <- function(years = c(12:17), keystages = c("KS4", "KS5")){
     }
     if(keystage == "KS5"){
       # build up matching KS4 data to fill in missing fields
-      
-      match_old = FALSE
-      if(match_old){
+      if (match_KS5){
         for (yr in years){
           AllGCSEStudents[[yr]] <- get(paste0("Students_GCSE_",yr))
           AllGCSEResults[[yr]] <- get(paste0("Results_GCSE_",yr))
         }
       }
 
+      match_old = match_KS5
       level <- c(111)
       QualName <- "Alevel"
       what_to_match_person <- list("EthMaj" = "EthMaj",
@@ -82,13 +110,14 @@ Main <- function(years = c(12:17), keystages = c("KS4", "KS5")){
                                            what_to_match_results = what_to_match_results,
                                            match=match_old,
                                            matches_students=AllGCSEStudents,
-                                           matches_results=AllGCSEResults)
+                                           matches_results=AllGCSEResults,
+                                           n)
 
       # make sure that all GENDER values are upper
       # added to deal with errors in 2017 A-level student set 107 lower case entries
       temp_students <- temp_students %>% mutate(GENDER = ifelse(!is.na(GENDER), toupper(GENDER), GENDER))
 
-      temp_results <- outputCleanResults(yr,keystage)
+      temp_results <- outputCleanResults(yr,keystage,n)
 
       ##### TODO: finds the repeat QANs
       # temp <- temp_results %>%
@@ -115,7 +144,7 @@ Main <- function(years = c(12:17), keystages = c("KS4", "KS5")){
         distinct(PupilMatchingRefAnonymous, URN, SUBLEVNO, MAPPING, POINTS)
 
       #TODO: fix this properly.., it will distort maths results
-      # adjust the 2017+ results to deal with 1-9 grading for maths and two English exams
+      # adjust the 2017 + results to deal with 1-9 grading
       if(yr >= 17 & keystage == "KS4"){
         single_QAN_results <- single_QAN_results %>%
           mutate(POINTS = case_when(!MAPPING %in% c(2210, 5030, 5110) & POINTS == 8.5 ~ 8.0,

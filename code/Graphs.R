@@ -279,10 +279,11 @@ plotResultsOnScatterMap <- function(map, provider_data, regions=NULL,  title="Co
 
   # add selective column
   provider_data <- provider_data %>%
-                      mutate(schType = ifelse(regexpr("inde", schType) != -1,
-                                                      "Independent",
-                                                      ifelse(regexpr("Selective", selective) != -1, "Grammar school",
-                                                                    "State non-selective"))) %>%
+                      mutate(selective = ifelse(is.na(selective), "", selective),
+                             schType = ifelse(regexpr("special", schType) != -1, "Special",
+                                              ifelse(regexpr("inde", schType) != -1, "Independent",
+                                                     ifelse(regexpr("Selective", selective) != -1, "Grammar",
+                                                            "Comprehensive")))) %>%
                       rename(`Provider Type` = schType,
                              Gender = schGender) %>%
                       select(-selective) %>%

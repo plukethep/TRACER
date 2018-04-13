@@ -34,10 +34,10 @@ folder <- getwd()
 # proc.time() - ptm
 
 #read in the full results file and save out a clean one for quick analysis
-outputCleanResults <- function(year, keystage){
+outputCleanResults <- function(year, keystage, n=0){
 
   # load big CSV file and get relevant columns
-  results <- loadStudentResults(year, keystage, NULL, n=0)
+  results <- loadStudentResults(year, keystage, NULL, n)
 
   write_csv(results,
             path = paste0(getwd(), "/data/cleaned/CleanResults_20", year, keystage, ".csv"),
@@ -57,10 +57,11 @@ outputCleanStudents <- function(year = 16,
                                 from = 12,
                                 to = 16,
                                 matches_students = NULL,
-                                matches_results = NULL){
+                                matches_results = NULL,
+                                n=0){
 
   # load big CSV file and get relevant columns
-  students <- loadStudents(year, keystage, n=0)
+  students <- loadStudents(year, keystage, n)
 
   # this allows missing data to be added to KS5 results from KS4 data
   if(match){
@@ -294,26 +295,28 @@ gather_spread <- function(data){
 
 # convert points into grades
 convertGrades <- function(data, level="GCSE"){
+  # data <- df
+  
   if(level == "GCSE"){
     data <- data %>%
-      mutate(grade = case_when(.$grade == "0" ~ "U",
-                               .$grade == "1" ~ "G",
-                               .$grade == "2" ~ "F",
-                               .$grade == "3" ~ "E",
-                               .$grade == "4" ~ "D",
-                               .$grade == "5" ~ "C",
-                               .$grade == "6" ~ "B",
-                               .$grade == "7" ~ "A",
-                               .$grade == "8" ~ "*",
-                               .$grade == "58" ~ "*",
-                               .$grade == "52" ~ "A",
-                               .$grade == "46" ~ "B",
-                               .$grade == "40" ~ "C",
-                               .$grade == "34" ~ "D",
-                               .$grade == "28" ~ "E",
-                               .$grade == "22" ~ "F",
-                               .$grade == "16" ~ "G",
-                               .$grade == "0"  ~ "U"))
+      mutate(grade = case_when(.$grade == 0 ~ "U",
+                               .$grade == 1 ~ "G",
+                               .$grade == 2 ~ "F",
+                               .$grade == 3 ~ "E",
+                               .$grade == 4 ~ "D",
+                               .$grade == 5 ~ "C",
+                               .$grade == 6 ~ "B",
+                               .$grade == 7 ~ "A",
+                               .$grade == 8 ~ "*",
+                               .$grade == 58 ~ "*",
+                               .$grade == 52 ~ "A",
+                               .$grade == 46 ~ "B",
+                               .$grade == 40 ~ "C",
+                               .$grade == 34 ~ "D",
+                               .$grade == 28 ~ "E",
+                               .$grade == 22 ~ "F",
+                               .$grade == 16 ~ "G",
+                               .$grade == 0  ~ "U"))
 
 
   }else if(level == "Alevel"){
@@ -330,6 +333,37 @@ convertGrades <- function(data, level="GCSE"){
   return(data)
 
 }
+
+# and the other way around
+convertGrades_letter_to_number <- function(data, level="GCSE"){
+  if(level == "GCSE"){
+    data <- data %>%
+      mutate(grade = case_when(.$grade == "U" ~ 0,
+                               .$grade == "G" ~ 1,
+                               .$grade == "F" ~ 2,
+                               .$grade == "E" ~ 3,
+                               .$grade == "D" ~ 4,
+                               .$grade == "C" ~ 5,
+                               .$grade == "B" ~ 6,
+                               .$grade == "A" ~ 7,
+                               .$grade == "*" ~ 8))
+    
+    
+  }else if(level == "Alevel"){
+    data <- data %>%
+      mutate(grade = case_when(.$grade == "*" ~ 300,
+                               .$grade == "A" ~ 270,
+                               .$grade == "B" ~ 240,
+                               .$grade == "C" ~ 210,
+                               .$grade == "D" ~ 180,
+                               .$grade == "E" ~ 150,
+                               .$grade == "U" ~ 0  ))
+  }
+  
+  return(data)
+  
+}
+
 
 #return a total row to a basic results table
 addTotalRow <- function(data, extrafields, grades= TRUE){
@@ -363,17 +397,17 @@ addTotalRow <- function(data, extrafields, grades= TRUE){
   newRow$`SchTypeTotalSchools` <- sum(data$`SchTypeTotalSchools`)
   newRow$`SchTotalStudents` <- sum(data$`SchTotalStudents`)
   newRow$`SubTotalSchools` <- sum(data$`SubTotalSchools`)
-  newRow$`% Schools` <- round(100 * sum(data$`SubTotalSchools`) / sum(data$`SchTypeTotalSchools`), digits=1)
+  newRow$`% Schools` <- printper0(sum(data$`SubTotalSchools`) / sum(data$`SchTypeTotalSchools`), d=1)
   newRow$`SubTotalStudents` <- sum(data$`SubTotalStudents`)
-  newRow$`% Students` <- round(100 * sum(data$`SubTotalStudents`) / sum(data$`SchTotalStudents`), digits=1)
-  newRow$AverageCohort <- round(sum(data$`SubTotalStudents`) / sum(data$`SubTotalSchools`), digits=1)
+  newRow$`% Students` <- printper0(sum(data$`SubTotalStudents`) / sum(data$`SchTotalStudents`), d=1)
+  newRow$AverageCohort <- printper(sum(data$`SubTotalStudents`) / sum(data$`SubTotalSchools`), d=1)
 
   size <- length(extrafields)
 
   if(grades == TRUE){
-    newRow$`Grade Avg Sch` <- round(sum(data$SchTotalGrade)/sum(data$SchTotalStudents), digits=1)
-    newRow$`Grade Avg Sub Stu` <- round(sum(data$SubStuAllGrades)/sum(data$SubTotalStudents), digits=1)
-    newRow$`Grade Avg Sub` <- round(sum(data$SubTotalGrade)/sum(data$SubTotalStudents), digits=1)
+    newRow$`Grade Avg Sch` <- printper(sum(data$SchTotalGrade)/sum(data$SchTotalStudents), d=1)
+    newRow$`Grade Avg Sub Stu` <- printper(sum(data$SubStuAllGrades)/sum(data$SubTotalStudents), d=1)
+    newRow$`Grade Avg Sub` <- printper(sum(data$SubTotalGrade)/sum(data$SubTotalStudents), d=1)
 
     # newRow[,c(size + 8)] <- AvgGradeFocus
     # newRow[,c(size + 9)] <- AvgGradeSubStudents
