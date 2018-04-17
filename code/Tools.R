@@ -365,6 +365,19 @@ convertGrades_letter_to_number <- function(data, level="GCSE"){
 }
 
 
+# convert to selection criteria
+convertSchType <- function(df){
+  df <-  df %>% mutate(selective = ifelse(is.na(selective), "", as.character(selective))) %>%
+                mutate(schType = ifelse(regexpr("special", schType) != -1, "Special",
+                                 ifelse(regexpr("inde", schType) != -1, "Independent",
+                                        ifelse(regexpr("Selective", selective) != -1, "Grammar",
+                                               "Comprehensive"))))
+  return(df)
+}
+  
+
+
+
 #return a total row to a basic results table
 addTotalRow <- function(data, extrafields, grades= TRUE){
   # data <- df
@@ -496,7 +509,7 @@ anonymiseTable<- function(table){
   #TODO: get this finished! : http://stackoverflow.com/questions/27027347/mutate-each-summarise-each-in-dplyr-how-do-i-select-certain-columns-and-give
 
   table %>% group_by_(name) %>%
-    mutate_each(funs(.=as.character(ifelse(.<=5,"X",.))))
+    mutate_all(funs(.=as.character(ifelse(.<=5,"X",.))))
 
   return(table)
   #mutate_each_(funs(ifelse(.<=5,"X",.),-`Pupil premium`))
@@ -891,12 +904,12 @@ RSanonymiseTable<- function(table, what, type = "school", size=30, number=30){
 
     # replace -1 and -2 with X
     table <- table %>%
-      mutate_each(funs(ifelse(. == -1,"X",
+      mutate_all(funs(ifelse(. == -1,"X",
                               ifelse(. == -2, "Y", as.character(.)))))
   }else{
     # replace -1 and -2 with X
     table <- table %>%
-              mutate_each(funs(ifelse(. == -1,"X",
+              mutate_all(funs(ifelse(. == -1,"X",
                                     ifelse(. == -2, "Y", as.character(.)))))
     # filter(`Total students` == "X")
 

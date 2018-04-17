@@ -279,7 +279,7 @@ OutputGradeDistributions <- function(spreadResults, discID, level, year, scope){
   #add percentage to each result
   overall_results$percentage <- 0
   overall_results <- overall_results %>% group_by(type) %>%
-    mutate_each(funs((count / sum(count))* 100), percentage)
+    mutate_all(funs((count / sum(count))* 100), percentage)
 
   #remove the type from positions
   positions <- positions[c(-1)]
@@ -604,6 +604,7 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
   # data = Spread_GCSE_17
   # subject = subject_code
   # type = "lea"
+  # type = "selective"
   # grades = TRUE
 
 
@@ -629,9 +630,7 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
   if(type == "mixedgender"){
 
     df <- data %>% select(GENDER, URN, schType, schGender, selective, !!subject) %>%
-      mutate(schType = ifelse(regexpr("inde", schType) != -1, "Independent",
-                              ifelse(regexpr("Selective", selective) != -1, "State Selective",
-                                     "State Non Selective"))) %>%
+      convertSchType() %>%
       filter(!is.na(!!subject)) %>%
       group_by(schGender,schType, URN, GENDER) %>%
       summarise(n=n()) %>%
@@ -648,12 +647,15 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
                 AvgSize = sum(TotalF, TotalM, na.rm=TRUE) / Institutions) %>%
       ungroup()
 
-    names(df) <- c("Gender", "Type", "SD", "Female computing students", "Male computing students", "Providers with no females", "Total Computing Providers", "Average Size")
-    df <- df[,c("Gender", "Type", "Total Computing Providers", "Female computing students", "Male computing students",  "Providers with no females")]
+    names(df) <- c("Gender", "Type", "SD", "Female CS students", "Male CS students", "Providers with no females", "Total CS Providers", "Average Size")
+    df <- df[,c("Gender", "Type", "Total CS Providers", "Female CS students", "Male CS students",  "Providers with no females")]
 
-    df$`Percentage of providers` <- 100*(df$`Providers with no females` / df$`Total Computing Providers`)
-
-    #TODO default to anonymising this data
+    df$`Percentage of providers` <- printper0(df$`Providers with no females` / df$`Total CS Providers`)
+    
+    #TODO: default to anonymising this data
+    df$`Female CS students` = 5 * round(df$`Female CS students` / 5)
+    df$`Female CS students` = 5 * round(df$`Female CS students` / 5)
+    df$`Male CS students` = 5 * round(df$`Providers with no females` / 5)
 
     return(df)
   }
@@ -695,7 +697,6 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
     names(df) <- c(c("Type"), names(df[,c(2:(length(names(df))))]))
   }
 
-
   ##### Provider type
   if(type == "type"){
     df <- df %>% select(schType, SchTypeTotalSchools, SchTotalStudents, SubTotalSchools, SubTotalStudents, SchTotalGrade, SubStuAllGrades, SubTotalGrade) %>%
@@ -722,16 +723,12 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
 
   ##### Independent vs Selective vs Non Selective
   if(type == "selective"){
-    df <- df %>% mutate(selective = ifelse(is.na(selective), "", selective),
-                          schType = ifelse(regexpr("special", schType) != -1, "Special",
-                                           ifelse(regexpr("inde", schType) != -1, "Independent",
-                                                  ifelse(regexpr("Selective", selective) != -1, "Grammar",
-                                                         "Comprehensive")))) %>%
+    df <- df %>% convertSchType() %>%
       select(-selective, -schUrban, -URN) %>%
       group_by(schType) %>%
       arrange(schType) %>%
       OutputSubectStudentSchoolsByCriteriaTail(.)
-
+    
     names(df) <- c(c("Type"), names(df[,c(2:(length(names(df))))]))
 
     # the definition of comprehensive and non comprehensive / secondary modern is messy so we clump them together
