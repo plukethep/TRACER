@@ -84,4 +84,5 @@ getPackages <- function(packs){
 
 ## How to write a report
 
-
+# License
+Creative Commons Attribution Share Alike 4.0
