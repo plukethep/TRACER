@@ -1,23 +1,33 @@
-library(ggplot2)
+library(data.table)
+library(plyr)
+library(magrittr)
+library(rlang)
+# library(tidyverse)
+#
+library(tidyr)
+library(dplyr)
+library(readr)
+library(purrr)
+
+
 library(svglite)
 library(rgeos) #for map simplification
 library(rgdal) #for reading/writing geo files
 library(Cairo)
-library(plyr)
-library(magrittr)
-library(rlang)
-library(tidyr)
-library(dplyr)
+
+
+
 library(maptools)
 # for reports
 library(knitr)
 library(pander)
 library(xtable)
-library(readr) # <- super fast csv reader
+ # <- super fast csv reader
 library(ggrepel) # <- auto position labels
 library(jsonlite)
 library(reshape2)
-library(purrr)
+library(effsize)
+
 # library(readxl) # can't currently load this!?
 
 
@@ -32,6 +42,50 @@ folder <- getwd()
 #timing#
 # ptm <- proc.time()
 # proc.time() - ptm
+
+convertStar <- function(p, num="", combine = TRUE, blank=" ", digits=3){
+  out <- ""
+  stars <- ""
+
+  stars <- ifelse(p < 0.001, "***",
+         ifelse(p < 0.01, paste0("**",blank),
+                ifelse(p < 0.05, paste0("*",blank, blank),
+                       ifelse(p < 0.1, paste0(".",blank, blank),
+                              paste0(blank ,blank, blank)))))
+
+  # if(p < 0.001){
+  #   stars <- "***"
+  # }else if(p < 0.01){
+  #   stars <- paste0("**",blank)
+  # }else if(p < 0.05){
+  #   stars <- paste0("*",blank, blank)
+  # }else if(p < 0.1){
+  #   stars <- paste0(".",blank, blank)
+  # }else{
+  #   stars <- paste0(blank ,blank, blank)
+  # }
+
+  if(combine & num!= ""){
+    out <- paste0(printper(num,digits),stars)
+  }else{
+    out <- stars
+  }
+  return(out)
+
+}
+
+
+# independent 2-group t-test, adding cohen's d
+ttest_d <- function(x, y){
+  tout <- t.test(x,y, na.rm =TRUE)
+  tout$d <- cohen.d(x,y, na.rm =TRUE)$estimate
+  tout$magnitude <- cohen.d(x,y, na.rm =TRUE)$magnitude
+  tout$desc <- paste0("_t_(",printper(tout$parameter,0), ")=", printper(tout$statistic, 3),
+                      " _p_=", printper(tout$p.value,3),
+                      " _d_=", printper(tout$d, 2))
+  return(tout)
+}
+
 
 #read in the full results file and save out a clean one for quick analysis
 outputCleanResults <- function(year, keystage, n=0){
@@ -296,7 +350,7 @@ gather_spread <- function(data){
 # convert points into grades
 convertGrades <- function(data, level="GCSE"){
   # data <- df
-  
+
   if(level == "GCSE"){
     data <- data %>%
       mutate(grade = case_when(.$grade == 0 ~ "U",
@@ -347,8 +401,8 @@ convertGrades_letter_to_number <- function(data, level="GCSE"){
                                .$grade == "B" ~ 6,
                                .$grade == "A" ~ 7,
                                .$grade == "*" ~ 8))
-    
-    
+
+
   }else if(level == "Alevel"){
     data <- data %>%
       mutate(grade = case_when(.$grade == "*" ~ 300,
@@ -359,9 +413,9 @@ convertGrades_letter_to_number <- function(data, level="GCSE"){
                                .$grade == "E" ~ 150,
                                .$grade == "U" ~ 0  ))
   }
-  
+
   return(data)
-  
+
 }
 
 
@@ -374,7 +428,7 @@ convertSchType <- function(df){
                                                "Comprehensive"))))
   return(df)
 }
-  
+
 
 
 
