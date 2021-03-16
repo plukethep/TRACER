@@ -76,8 +76,8 @@ OutputSubjectStudentSchoolsAll <- function(df, subject = quo(X2610)){
     ungroup() %>%
     distinct(URN, trust, schType, schGender, selective, schUrban, SubTotalSchools, SubTotalStudents, SubTotalGrade, SubAvgGrade, SubStuAllGrades, SubStuAllAvgGrade)
 
-  sum(tempSubject$SubTotalSchools)
-  sum(tempSubject$SubTotalStudents)
+  # sum(tempSubject$SubTotalSchools)
+  # sum(tempSubject$SubTotalStudents)
 
   #join results together and add summary stats
   output <- tempOverall %>%
@@ -605,29 +605,14 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
   # subject = subject_code
   # type = "lea"
   # type = "selective"
+  # type = "mixedgender"
   # grades = TRUE
-
-
-
-  ###### get details on ALL students, schools and grades for all school types
-  df <- OutputSubjectStudentSchoolsAll(data, subject)
-
-  ######
-  # depending on type option, collate results
-  ######
-
-  ##### get provision for each school
-  if(type == "all"){
-    df <- df %>% select(URN, SchTypeTotalSchools, SchTotalStudents, SubTotalSchools, SubTotalStudents, SchTotalGrade, SubStuAllGrades, SubTotalGrade) %>%
-      ungroup() %>% group_by(URN) %>% OutputSubectStudentSchoolsByCriteriaTail(.)
-
-    # map to MAT, Gender, Selective,
-
-    names(df) <- c(c("Type"), names(df[,c(2:(length(names(df))))]))
-  }
 
   ##### gender provision for mixed schools
   if(type == "mixedgender"){
+
+    #sum(df$F)
+    #sum(df$M)
 
     df <- data %>% select(GENDER, URN, schType, schGender, selective, !!subject) %>%
       convertSchType() %>%
@@ -651,14 +636,33 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
     df <- df[,c("Gender", "Type", "Total CS Providers", "Female CS students", "Male CS students",  "Providers with no females")]
 
     df$`Percentage of providers` <- printper0(df$`Providers with no females` / df$`Total CS Providers`)
-    
+
     #TODO: default to anonymising this data
-    df$`Female CS students` = 5 * round(df$`Female CS students` / 5)
-    df$`Female CS students` = 5 * round(df$`Female CS students` / 5)
-    df$`Male CS students` = 5 * round(df$`Providers with no females` / 5)
+    df$`Female CS students` = 5 * ceiling(df$`Female CS students` / 5)
+    # df$`Female CS students` = 5 * round(df$`Female CS students` / 5)
+    df$`Male CS students` = 5 * ceiling(df$`Male CS students` / 5)
 
     return(df)
   }
+
+  ###### get details on ALL students, schools and grades for all school types
+  df <- OutputSubjectStudentSchoolsAll(data, subject)
+
+  ######
+  # depending on type option, collate results
+  ######
+
+  ##### get provision for each school
+  if(type == "all"){
+    df <- df %>% select(URN, SchTypeTotalSchools, SchTotalStudents, SubTotalSchools, SubTotalStudents, SchTotalGrade, SubStuAllGrades, SubTotalGrade) %>%
+      ungroup() %>% group_by(URN) %>% OutputSubectStudentSchoolsByCriteriaTail(.)
+
+    # map to MAT, Gender, Selective,
+
+    names(df) <- c(c("Type"), names(df[,c(2:(length(names(df))))]))
+  }
+
+
 
   ##### Local Education Authorities
   if(type == "lea"){
@@ -728,7 +732,7 @@ OutputSubectStudentSchoolsByCriteria <- function(data, subject, type, grades = T
       group_by(schType) %>%
       arrange(schType) %>%
       OutputSubectStudentSchoolsByCriteriaTail(.)
-    
+
     names(df) <- c(c("Type"), names(df[,c(2:(length(names(df))))]))
 
     # the definition of comprehensive and non comprehensive / secondary modern is messy so we clump them together
@@ -1159,13 +1163,13 @@ OutputEBACCSummary <- function(spreadResults, subject="X2610"){
   # 1030	Biology: Human                #no entries 2015
   # 1050	Biology: Social               #no entries 2015
   # 1060	Biology: Human & Social       #no entries 2015
-  
+
   # 2017 subject list
   # subs <- c("X1110",  "X1210",  "X1300",  "X1310",  "X1320",  "X1330",  "X1350",  "X1370",  "X1390",  "X1410", "X1450",  "X1470",  "X1010",  "X1030",  "X1050",  "X1060")
   # subs <- c("X1010", "X1110", "X1210", "X1300", "X1320")
   # Spread_GCSE_17 %>% select_(.dots=subs) %>% mutate_all(funs(ifelse(!is.na(.),1,NA))) %>% gather(subject, result, na.rm=TRUE) %>% group_by(subject) %>% summarise(n = sum(result))
   # names(spreadResults)[names(spreadResults) %in% subs]
-  
+
   sciences <- c("X2610","X1010","X1110","X1210","X1300","X1320")
 
   #convert the dataframe to record 1 for a c or above, and 0 otherwise
@@ -1179,8 +1183,8 @@ OutputEBACCSummary <- function(spreadResults, subject="X2610"){
                                     attempt_singles,TRUE,FALSE),
            singles_taken = rowSums(!is.na(.[c("X2610","X1010","X1110","X1210")]))
     )
-    
-    
+
+
 
     #temp %>% filter(!is.na(X2610), singlestaken == 3) %>% summarise(n = n())
 
@@ -1189,25 +1193,25 @@ OutputEBACCSummary <- function(spreadResults, subject="X2610"){
   }else{
     focus = "X2610"
   }
-  
-  
-  temp <- temp %>% 
-    group_by((!!sym(focus)), attempt_singles, passed_singles, singles_taken, attempt_coreadd, passed_coreadd) %>% 
-    summarise(n=n()) %>% 
-    ungroup()
-  
-  names(temp) <- c("Subject", "attempt_singles", "passed_singles", "singles_taken", "attempt_coreadd", "passed_coreadd",  "n")
-  
+
+
   temp <- temp %>%
-    group_by(Subject) %>% 
+    group_by((!!sym(focus)), attempt_singles, passed_singles, singles_taken, attempt_coreadd, passed_coreadd) %>%
+    summarise(n=n()) %>%
+    ungroup()
+
+  names(temp) <- c("Subject", "attempt_singles", "passed_singles", "singles_taken", "attempt_coreadd", "passed_coreadd",  "n")
+
+  temp <- temp %>%
+    group_by(Subject) %>%
     mutate(total = sum(n)) %>%
     ungroup()
-  
+
   if(subject != "ALL"){
     temp <- temp %>%
       filter(!is.na(Subject))
   }
-  
+
   temp <- temp %>%
     summarise(singles_4 = sum(ifelse(singles_taken == 4,n,0)),
               singles_3 = sum(ifelse(singles_taken == 3,n,0)),
@@ -1220,8 +1224,8 @@ OutputEBACCSummary <- function(spreadResults, subject="X2610"){
               singles_4_per = printper0(singles_4 / total),
               singles_3_per = printper0(singles_3 / total))
 
-  
-  
+
+
   # TODO: get results on core science in addition to single science
   # TODO: check that no other double science awards appear anywhere
   # temp %>% filter(!is.na(Subject), attemptsingles == TRUE)
@@ -1426,6 +1430,9 @@ Output_access_to_subject <- function(spread, sub="X2610"){
   access <- NULL
   access$MAPPING <- sub
 
+  # get rid of the 900000 URNs
+  spread <- spread %>% filter(URN < 900000)
+
   All_URN <- spread %$% unique(URN)
   Sub_URN <- spread %>% filter_(paste0("!is.na(",sub,")")) %$% unique(URN)
 
@@ -1503,6 +1510,23 @@ Output_access_to_subjects <- function(spread){
                                               "Students n able to sit subject","Students % able to sit subject",
                                               "Students sitting subject", "Student % of all students", "Student % of offered students" )]
   return(access_to_subjects)
+}
+
+# a function to work out the number of IGCSE CS providers
+Output_IGCSE_providers <- function(spread){
+  temp <- Results_GCSE_Current %>% filter(QAN == "60131202" | MAPPING == 2610) %>% mutate(iGCSE = ifelse(QAN == "60131202", TRUE, FALSE))
+
+  temp <- left_join(temp, loadSchools() %>% select(URN, schType, selective)) %>% convertSchType()
+
+  temp <- temp %>% group_by(schType, iGCSE) %>% summarise(n=n(), URNs = length(unique(URN)))
+
+
+  stu <- temp %>% select(-URNs) %>% spread(iGCSE,n)
+  urns <- temp %>% select(-n) %>% spread(iGCSE,URNs)
+  final <- left_join(stu, urns, by="schType")
+
+  names(final) <- c("Type", "GCSE students", "IGCSE students", "GCSE providers", "IGCSE providers")
+  return(final)
 }
 
 # output a table showing the percentages of cohort taking given subject for each URN
