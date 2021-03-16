@@ -34,13 +34,12 @@ plotYearlyData <- function(data_name, grouping, measure, items, year_range=c(14,
 plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=NULL, title="Computing schools", type="provider"){
   warning(resolution, " - ", type)
 
-  # map <- LAmap
+  # map <- Regionmap
   # region_data <- get(paste0("table_",course,"_provider_lea")) %>% rename(Region = Type)
-  # resolution <- "lea"
+  # resolution <- "region"
   # regions <- NULL
-  # title <- paste(subject_name, focus, "% - local education authorities"),
-  # type <- focus
-
+  # title <- paste(subject_name, focus, "% - local education authorities")
+  # type <- "gender"
 
   #message(0, nrow(region_data))
    # map <- LAmap
@@ -72,20 +71,9 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
   temp_map <- left_join(map %>% mutate(id = as.character(id)),
                         region_data %>% mutate(Code = as.character(Code)),
                         by=c("id"="Code"))
-  #temp_map <- merge(map, region_data %>% select(Code, `Subject Students`, `Subject Providers`, `Providers %`, `Students %`), by.x="id", by.y="Code", all.x = TRUE)
-
-  # message("3", nrow(temp_map))
 
   #check that all regions have a value to plot
   temp <- distinct(temp_map, id, `Subject Students`)
-
-  if(nrow(temp[is.na(temp$`Subject Students`),]) > 0)
-  {
-    warning(paste(" ERROR map data, missing figures for ",
-                  temp[is.na(temp$`Subject Students`),]$id))
-  }
-
-  # message("4", nrow(temp_map))
 
   #check that there is data for each LA. The map matches the data
   mapIds <- unique(temp_map$id)
@@ -114,6 +102,12 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
   # the craziness explained here:
   #http://stackoverflow.com/questions/21748852/choropleth-map-in-ggplot-with-polygons-that-have-holes
   if(type == "provider"){
+    if(nrow(temp[is.na(temp$`Subject Students`),]) > 0)
+    {
+      warning(paste(" ERROR map data, missing figures for ",
+                    temp[is.na(temp$`Subject Students`),]$id))
+    }
+    
     total <- sum(region_data$`Subject Providers`, na.rm=TRUE)
     p <- ggplot(temp_map, aes(x=long, y=lat, group=group)) +
       geom_polygon(data=temp_map[temp_map$id %in%
@@ -123,6 +117,11 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
                                    temp_map[temp_map$hole,]$id,],
                    aes(fill=`Providers %`))
   }else if(type=="student"){
+    if(nrow(temp[is.na(temp$`Subject Students`),]) > 0)
+    {
+      warning(paste(" ERROR map data, missing figures for ",
+                    temp[is.na(temp$`Subject Students`),]$id))
+    }
 
     # message("6", nrow(temp_map))
 
@@ -145,14 +144,23 @@ plotResultsOnHeatMap <- function(map, region_data, resolution="region", regions=
                                    temp_map[temp_map$hole,]$id,],
                    aes(fill=`Students %`))
 
-    # message("8", nrow(temp_map))
-
+  }else if(type=="gender"){
+    head(temp_map)
+    temp_map$`% of subject students` <- as.numeric(temp_map$`% of subject students`)
+    
+    p <- ggplot(temp_map, aes(x=long, y=lat, group=group)) +
+      geom_polygon(data=temp_map[temp_map$id %in%
+                                   temp_map[temp_map$hole,]$id,],
+                   aes(fill=`% of subject students`))+
+      geom_polygon(data=temp_map[!temp_map$id %in%
+                                   temp_map[temp_map$hole,]$id,],
+                   aes(fill=`% of subject students`))
+  
   }
 
   #add the rest of the data to the map
   p <- p + scale_fill_distiller(palette = "Spectral", name="%") +
     theme_bw() +
-    ggtitle(title) +
     theme(axis.text.y=element_blank(),
           axis.text.x=element_blank(),
           axis.title.y=element_blank(),
@@ -528,8 +536,10 @@ plotEthMinPercentageOffset <- function(EthTotals,  title="Computing students"){
 }
 
 #plot entries for a given subject against the cohort size of each insitution
-plotEntriesCohortSizeCluster <- function(data, title = "Computing", level = "GCSE", bar_order){
+plotEntriesCohortSizeCluster <- function(data, title = "Computing", level = "GCSE", bar_order = 19){
 
+  # data <- cohortdata
+  
   output <- ggplot(data , aes(x = Size, y = Entries, fill="red")) +
     geom_bar(stat = "identity") +
     xlab(paste("Clusters of schools\nby",level,"cohort size")) +
@@ -562,7 +572,7 @@ plotEntriesCohortSize <- function(data, title = "Computing", subjects, line=19){
   ICTyline <- data %>% filter(subject == quo_name(comparison_subjects[[3]]), size == line) %$% per
 
   output <- ggplot(data, aes(x=size, y=per, colour=name)) +
-    geom_line(stat = "identity") + geom_point() +
+    geom_line(stat = "identity") + geom_point(size=0.90) +
     scale_y_continuous("Cumulative percentage of providers", limits=c(0,100)) +
     scale_x_continuous("Subject cohort size of provider", limits=c(0,maxX)) +
     geom_vline(aes(xintercept = line), linetype="dashed") +
@@ -573,7 +583,8 @@ plotEntriesCohortSize <- function(data, title = "Computing", subjects, line=19){
     geom_hline(aes(yintercept = Phyyline)) +
     geom_text(aes( 0, Phyyline, label = paste0(round(Phyyline,1),"%"), vjust = -0.5), colour = "grey30", size = 2.5) +
     geom_hline(aes(yintercept = ICTyline)) +
-    geom_text(aes( 0, ICTyline, label = paste0(round(ICTyline,1),"%"), vjust = -0.5), colour = "grey30", size = 2.5)
+    geom_text(aes( 0, ICTyline, label = paste0(round(ICTyline,1),"%"), vjust = -0.5), colour = "grey30", size = 2.5) +
+    theme(legend.position="bottom")
 
 
   return(output)
@@ -1059,5 +1070,3 @@ printResults <- function(data, DiscName, discID, year, level, type, bar_order, w
   #print(filename)
   ggsave(p, file=filename, width=w)
 }
-
-
