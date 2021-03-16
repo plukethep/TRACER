@@ -42,17 +42,23 @@ initialiseDataFrames <- function(keystage, qual, year, cleanfolder=paste0(getwd(
       message(paste(Students_filename, "|",Results_filename))
       message("create them with outputCleanStudents(..) or Main()")
     }else{
-      assign(paste0("Students_", qual,"_", year), read_csv(Students_filename, col_names = TRUE), envir = .GlobalEnv)
-      assign(paste0("Results_", qual,"_", year), read_csv(Results_filename, col_names = TRUE), envir = .GlobalEnv)
+      assign(paste0("Students_", qual,"_", year), fread(Students_filename, header = TRUE), envir = .GlobalEnv)
+      assign(paste0("Results_", qual,"_", year), fread(Results_filename, header = TRUE), envir = .GlobalEnv)
 
       # fix column types for new readr implementation, which sets some results columns to character 2017-10-02
       assign(paste0("Spread_", qual,"_", year),
-             read_csv(Spread_filename, col_names = TRUE) %>% mutate_all(funs(type.convert(as.character(.)))),
+             fread(Spread_filename, header = TRUE) %>% mutate_all(funs(type.convert(as.character(.)))),
              envir = .GlobalEnv)
       # sapply(temp, class)
       print(paste("Init", keystage, qual, year))
     }
   }
+
+  # use this to convert back to dataframes from data.table. Data.table used above for speed
+  setattr(get(paste0("Spread_", qual,"_", year)), "class", c("tbl", "tbl_df", "data.frame"))
+  setattr(get(paste0("Students_", qual,"_", year)), "class", c("tbl", "tbl_df", "data.frame"))
+  setattr(get(paste0("Results_", qual,"_", year)), "class", c("tbl", "tbl_df", "data.frame"))
+
 }
 
 #get the relevant QANs for a given year
@@ -423,9 +429,11 @@ loadPostcodes <- function(dir=getwd()){
 
   if (!exists("postcodes"))
   {
-    postcodes <- read_delim(paste(dir, "/data/postcodes/postcodes.csv", sep=""),
-                          col_names=TRUE,delim=",")
+    postcodes <- fread(paste(dir, "/data/postcodes/postcodes.csv", sep=""),
+                          header=TRUE)
   }
+
+  setattr(postcodes, "class", c("tbl", "tbl_df", "data.frame"))
   return(postcodes)
 }
 
