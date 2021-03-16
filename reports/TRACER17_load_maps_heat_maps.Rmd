@@ -1,0 +1,93 @@
+```{r Load_maps_heat_Maps, message=FALSE}
+  # Build heat maps for providers and students for a range of regions
+  
+  for (course in c("Alevel", "GCSE")){
+    for (focus in c("provider", "student")){
+      message(course, " ", focus)
+      
+      #filter out LEAs with no provision, these are crurently messing up the heat maps
+      # rename (Region = Type)
+      lea_table <- get(paste0("table_",course,"_provider_lea")) %>% filter(`Subject Providers` != 0) %>% rename(Region = Type)
+
+      #By Region
+      assign(paste0("map_heat_",course,"_",focus,"_region"),
+             plotResultsOnHeatMap(Regionmap, get(paste0("table_",course,"_provider_region")) %>% rename(Region = Type),
+                                  "region", NULL, paste(subject_name, focus, "% - regions"), focus))
+      
+      # By LEA
+      assign(paste0("map_heat_",course,"_",focus,"_lea"),
+             plotResultsOnHeatMap(LAmap, lea_table,
+                                  "lea", NULL, paste(subject_name, focus, "% - local education authorities"), focus))
+      
+      assign(paste0("map_heat_",course,"_",focus,"_lea_london"),
+             plotResultsOnHeatMap(LAmap, lea_table,
+                                  "lea", loadLondonLEAs(), paste(subject_name, focus, "% - London"), focus))
+      
+      assign(paste0("map_heat_",course,"_",focus,"_lea_manchliver"),
+             plotResultsOnHeatMap(LAmap, lea_table,
+                                  "lea", loadManchLiverLEAs(), paste(subject_name, focus, "% - Manchester & Liverpool"), focus))
+      
+      assign(paste0("map_heat_",course,"_",focus,"_lea_birmingham"),
+             plotResultsOnHeatMap(LAmap, lea_table,
+                                  "lea", loadBirminghamLEAs(), paste(subject_name, focus, "% - Birmingham"), focus))
+      
+      assign(paste0("map_heat_",course,"_",focus,"_lea_leeds"),
+             plotResultsOnHeatMap(LAmap, lea_table,
+                                  "lea", loadLeedsLEAs(), paste(subject_name, focus, "% - Leeds"), focus))
+    }
+    
+    # Map of female uptake:
+    region_data <- get(paste0("table_",course,"_provider_lea_female")) %>% 
+                      rename(Region = Name) %>% 
+                      filter(Region != "TOTAL",
+                             as.numeric(`% of subject students`) != 0,
+                             as.numeric(`% of subject students`) != 100)
+
+
+    assign(paste0("map_heat_",course,"_gender_lea"),
+       plotResultsOnHeatMap(LAmap, 
+                            region_data,
+                            "lea", 
+                            NULL, 
+                            paste(subject_name, " gender by LEA"), 
+                            "gender"))
+    
+    region_data <- get(paste0("table_",course,"_provider_region_female")) %>% 
+                      rename(Region = Name) %>% 
+                      filter(Region != "TOTAL",
+                             as.numeric(`% of subject students`) != 0,
+                             as.numeric(`% of subject students`) != 100)
+    
+    assign(paste0("map_heat_",course,"_gender_region"),
+       plotResultsOnHeatMap(Regionmap, 
+                            region_data,
+                            "region", 
+                            NULL, 
+                            paste(subject_name, " gender by LEA"), 
+                            "gender"))
+
+    ## load data
+#     students <- Students_GCSE_Current
+#     results <- Results_GCSE_Current
+#     subjects <- c("2610")
+#     level <- c(310)
+#     
+# LAfemaleStats <- PrepareResolutionWhatData(students, results, "LA..code.", "GENDER", subjects, level, dir=basefolder)
+# LAfemaleSchStats <- returnSchoolsForResolution(students, results, "LA..code.", "GENDER", "\"F\"", subjects, level, FALSE)
+# 
+# LAGenderTable <- LAfemaleStats %>%
+#   group_by(`LA (name)`) %>%
+#   filter(GENDER == "F") %>%
+#   mutate(genderPer = 100 * (Total / resoTotal)) %>%
+#   arrange(desc(subTotalWhatPercentage)) %>%
+#   select(`LA (name)`, resoTotal, Total, genderPer, subTotal, subStudents, subTotalWhatPercentage)
+# 
+# names(LAGenderTable) <- c("Local Authority", "Total students", "Female students", "% of total students", "Total subject students", "Female subject students", "% of subject students")
+# 
+# temp <- left_join(LAfemaleSchStats, LAGenderTable, by=c("Name"="Local Authority"))
+# table <- RSanonymiseTable(temp, "ten", "localauthority", size=NULL, number=NULL)
+#     
+#     
+    
+  }
+```

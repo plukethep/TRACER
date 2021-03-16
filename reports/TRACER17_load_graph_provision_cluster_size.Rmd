@@ -1,0 +1,35 @@
+```{r Load_graph_Provision_cluster_size, message=FALSE}
+  # output graphs for schools taking subjects by school cohort size
+  for (l in c("Alevel", "GCSE")){
+    
+    for (x in c(1:length(comparison_subjects))){
+      data <- OutputSubjectBySchoolSizeClusters(get(paste0("Spread_",l,"_Current")), comparison_subjects[[x]], "combined")
+      assign(paste0("graph_",l,"_school_size_cluster_",
+                    gsub(" ","",names(comparison_subjects)[x])),
+             plotEntriesCohortSizeCluster(data, names(comparison_subjects)[x], l, data$label))
+    }
+    # TODO: this prints, cache the output
+    # assign(paste0("graph_",l,"_school_size_cluster"),
+    #        multiplot(get(paste0("graph_",l,"_school_size_cluster_", gsub(" ","",names(comparison_subjects)[1]))),
+    #                  get(paste0("graph_",l,"_school_size_cluster_", gsub(" ","",names(comparison_subjects)[2]))),
+    #                  get(paste0("graph_",l,"_school_size_cluster_", gsub(" ","",names(comparison_subjects)[3]))),
+    #                  cols=3))
+  }
+  
+  # output graphs for schools taking subjects by number of subjects school offers
+  for (l in c("Alevel", "GCSE")){
+    for (x in c(1:length(comparison_subjects))){
+      data <- OutputSubjectBySchoolQuals(get(paste0("Spread_",l,"_Current")), comparison_subjects[[x]], "combined")
+      assign(paste0("graph_",l,"_school_subjects_cluster_",
+                    gsub(" ","",names(comparison_subjects)[x])),
+             plotEntriesSubjectNumber(data, names(comparison_subjects)[x], l, data$label))
+    }
+    
+    # TODO: this prints, cache the output
+    # assign(paste0("graph_",l,"_school_size_cluster"),
+    #        multiplot(get(paste0("graph_",l,"_school_subjects_cluster_", gsub(" ","",names(comparison_subjects)[1]))),
+    #                  get(paste0("graph_",l,"_school_subjects_cluster_", gsub(" ","",names(comparison_subjects)[2]))),
+    #                  get(paste0("graph_",l,"_school_subjects_cluster_", gsub(" ","",names(comparison_subjects)[3]))),
+    #                  cols=3))
+  }
+```

@@ -1,0 +1,285 @@
+```{r Load_graph_student}
+  for(ks in c("GCSE", "Alevel")){
+    for (what in c("total", "percentage")){
+      assign(paste0("graph_",ks,"_student_gender_",what),
+             plotResultsbyFocus(get(paste0("table_",ks,"_student_demographic_summary")),
+                                c("GENDER"),
+                                what,
+                                paste("Gender",what,"students"))) 
+      assign(paste0("graph_",ks,"_student_fsm_",what),
+             plotResultsbyFocus(get(paste0("table_",ks,"_student_demographic_summary")),
+                                c("EVERFSM_6"),
+                                what,
+                                paste("Pupil premium",what,"students")))
+      assign(paste0("graph_",ks,"_student_eal_",what),
+             plotResultsbyFocus(get(paste0("table_",ks,"_student_demographic_summary")),
+                                c("EAL"),
+                                what,
+                                paste("EAL",what,"students")))
+    } 
+    
+    # % of students taking subject compared to other subjects
+    assign(paste0("graph_",ks,"_student_taking_fsm"),
+           plotSubjectComparisonSingleItem(get(paste0("table_",ks,"_student_taking_everfsm_6")) %>% 
+                                             mutate(mean = printper0(mean),
+                                                    Highlight = printper0(Highlight)),
+                                           quo_name(subject_code),
+                                           "EVERFSM_6",
+                                           paste(subject_name, "pupil premium comparison"),
+                                           "Pupil premium",
+                                           "% pupil premium intake"))
+    
+    assign(paste0("graph_",ks,"_student_taking_idaci"),
+           plotSubjectComparisonSingleItem(get(paste0("table_",ks,"_student_taking_idaciscore")),
+                                           quo_name(subject_code),
+                                           "IDACI",
+                                           paste(subject_name, "IDACI comparison"),
+                                           "IDACI",
+                                           "average IDACI score of intake"))
+    
+    assign(paste0("graph_",ks,"_student_taking_ks2mat"),
+           plotSubjectComparisonSingleItem(get(paste0("table_",ks,"_student_taking_ks2mat")),
+                                           quo_name(subject_code),
+                                           "KS2 Maths",
+                                           paste(subject_name, "KS2 Maths comparison"),
+                                           "KS2 Maths",
+                                           "average KS2 Maths"))
+    
+    ### plot subject comparison graphs
+    temp <- get(paste0("table_",ks,"_student_ksavggrade_gender")) %>% filter(!is.na(GENDER))
+    temp <- rename(temp, Average = Cpass)
+    temp$Average <- 100 * temp$Average
+    temp$Highlight <- 100 * temp$Highlight
+    
+    # plot C grades for Gender
+    assign(paste0("graph_",ks,"_student_cgrade_gender"),
+           plotSubjectComparisonDoubleItem(temp,
+                                           "GENDER",
+                                           "Computing gender C and above",
+                                           "Gender",
+                                           "% Grade C or above"))
+    
+    
+    # plot C grades for FSM
+    temp <- get(paste0("table_",ks,"_student_ksavggrade_fsm"))
+    temp <- rename(temp, Average = Cpass)
+    temp$Average <- 100 * temp$Average
+    temp$Highlight <- 100 * temp$Highlight
+    
+    message(paste0("graph_",ks,"_student_cgrade_fsm"))
+    
+    # plot C grades for PP
+    assign(paste0("graph_",ks,"_student_cgrade_fsm"),
+           plotSubjectComparisonSingleItem(temp %>% filter(EVERFSM_6 == 1),
+                                           quo_name(subject_code),
+                                           "FSM",
+                                           "Pupil premium C and above",
+                                           "Pupil premium",
+                                           "% Pupil Premium C and above"))
+    
+    message(paste0("graph_",ks,"_student_cgrade_fsm"), " EXISTS ", exists(paste0("graph_",ks,"_student_cgrade_fsm")))
+    
+    # plot C grades for non-FSM
+    assign(paste0("graph_",ks,"_student_cgrade_nonfsm"),
+           plotSubjectComparisonSingleItem(temp %>% filter(EVERFSM_6 == 0),
+                                           quo_name(subject_code),
+                                           "FSM",
+                                           "Non pupil premium C and above",
+                                           "Pupil premium",
+                                           "% non Pupil Premium C and above"))
+    
+    message(paste0("graph_",ks,"_student_cgrade_nonfsm"), " EXISTS ", exists(paste0("graph_",ks,"_student_cgrade_nonfsm")))
+    
+    
+    # create graphs for ethnicity
+    for(eth in unique(Spread_GCSE_Current$EthMaj)){
+      assign(paste0("graph_",ks,"_student_ethnicity_",eth),
+             plotEthnicityPercentageAllSubs(get(paste0("Spread_",ks,"_Current")), 
+                                            eth, returnEthnicity(eth), quo_name(subject_code)))
+      
+    }
+    
+    # create longitudinal graphs for given TYPE
+    for(type in c("sen", "ethmaj", "everfsm_6", "gender", "sen", "eal", "idaciscore", "ethmaj")){
+      # type <- "everfsm_6"
+      # type <- "gender"
+      # type <- "idaciscore"
+      long_dataset <- data.frame()
+      
+      # build the longitudinal table for the given type
+      for(y in year_range){
+        yr <- y
+        if(y == year){
+          y <- ""
+        }else{
+          y <- paste0("_",y)
+        }
+        
+        plot_data <- get(paste0("table_",ks,"_student_taking_",type, y))
+        plot_data$Year <- yr
+        long_dataset <- rbind(long_dataset, plot_data)
+      }
+
+      
+      if(type == "idaciscore"){
+        choices <- c("All", sapply(comparison_subjects, function(x) quo_name(x)))
+        long_dataset <- long_dataset %>% filter(Subject %in% choices)
+        long_dataset$Grouping <- long_dataset$SubjectName
+        long_dataset$Percentage <- long_dataset$mean
+      }
+      
+      if(type == "everfsm_6"){
+        choices <- c("All", sapply(comparison_subjects, function(x) quo_name(x)))
+        long_dataset <- long_dataset %>% filter(Subject %in% choices)
+        long_dataset$Grouping <- long_dataset$SubjectName
+        long_dataset$Percentage <- 100 * long_dataset$mean
+      }
+      
+      
+      if(type == "gender"){
+        choices <- c("All", sapply(comparison_subjects, function(x) quo_name(x)))
+        long_dataset <- long_dataset %>% filter(Subject %in% choices)
+        long_dataset$Grouping <- long_dataset$SubjectName
+        long_dataset$Percentage <- long_dataset$mean
+        long_dataset <- long_dataset %>% 
+           filter(what == "F", Subject != "All")
+      }
+      
+      if(type == "eal"){
+        choices <- c("All", sapply(comparison_subjects, function(x) quo_name(x)))
+        long_dataset <- long_dataset %>% filter(Subject %in% choices)
+        long_dataset$Grouping <- long_dataset$SubjectName
+        long_dataset$Percentage <- long_dataset$mean
+         long_dataset <- long_dataset %>% 
+           filter(what == 2)
+      }
+      
+      if(type == "sen"){
+        # here SEN is interpreseted as anything that isn't N = No special educational need
+        choices <- c("All", sapply(comparison_subjects, function(x) quo_name(x)))
+        long_dataset <- long_dataset %>% filter(Subject %in% choices)
+        long_dataset$Grouping <- long_dataset$SubjectName
+        long_dataset <- long_dataset %>% 
+          group_by(Year, Subject) %>% 
+          mutate(Percentage = 100 - max(mean)) %>% 
+          ungroup() %>% filter(what == "N")
+
+      }
+
+      # only plot the ethmaj for the given subject
+      if(type == "ethmaj"){
+        choices <- c(paste0("X",subject_code_char))
+        long_dataset <- long_dataset %>% filter(Subject %in% choices)
+        long_dataset$Grouping <- long_dataset$what
+        long_dataset$Percentage <- long_dataset$mean
+      }
+      
+      
+
+      message(ks,type,y, yr)
+  
+      
+      if(type == "idaciscore"){
+        long_dataset <- long_dataset %>% rename(IDACI = Percentage)
+        assign(paste0("graph_",ks,"_long_",type,"_offering"),
+            ggplot(long_dataset) +
+              geom_line(aes(x = Year, y=IDACI, colour=Grouping), stat="identity") +
+              geom_point(aes(x = Year, y=IDACI, colour=Grouping), stat="identity") +
+              scale_y_continuous(limits=c(0, max(long_dataset$IDACI)))
+            )
+        
+      }else{
+        
+        # change the structure to match the format needed for the following ggplot format. Provide All
+        assign(paste0("graph_",ks,"_long_",type,"_offering"),
+            ggplot(long_dataset) +
+              geom_line(aes(x = Year, y=Percentage, colour=Grouping), stat="identity") +
+              geom_point(aes(x = Year, y=Percentage, colour=Grouping), stat="identity") +
+              scale_y_continuous(limits=c(0, max(long_dataset$Percentage)))
+            )
+        ########
+        # build the longitudinal table for the given type against the population, useful for uneven graphs such as ethnicity
+        ########
+        long_dataset_vs_pop <- data.frame()
+        # type <- "eal"
+        for(y in year_range){
+          yr <- y
+          if(y == year){
+            y <- ""
+          }else{
+            y <- paste0("_",y)
+          }
+          for(sub in sapply(comparison_subjects, function(x) quo_name(x))){
+            plot_data <- get(paste0("table_",ks,"_",sub,"_student_pop_vs_",type, y))
+            plot_data$Year <- yr
+            plot_data$Subject <- sub
+            long_dataset_vs_pop <- rbind(long_dataset_vs_pop, plot_data)
+          }
+        }
+        long_dataset_vs_pop <- long_dataset_vs_pop %>% select(-year)
+        names(long_dataset_vs_pop) <- tolower(names(long_dataset_vs_pop))
+        long_dataset_vs_pop$grouping <- long_dataset_vs_pop[[type]]
+        
+        if(type == "ethmaj"){
+          # Filter out aoeg and uncl
+          #only focus on ICT and Comp
+          #TODO: this isn't robust!
+          long_dataset_vs_pop <- long_dataset_vs_pop %>% filter(!grouping %in% c("AOEG", "UNCL"), !subject %in% c("X1210"))
+        }
+        
+  
+        if(type == "eal"){
+        }
+        
+        if(type == "sen"){
+        }
+        # add proper names to the graphs
+        long_dataset_vs_pop <- left_join(long_dataset_vs_pop, 
+                                         loadDiscMappings() %>% 
+                                           mutate(MAPPING = paste0("X", MAPPING)), 
+                  by=c("subject"="MAPPING")) %>% 
+          mutate(subject = MAPPING_DESCRIPTION) %>% 
+          select(-MAPPING_DESCRIPTION)
+        
+        assign(paste0("graph_",ks,"_long_",type,"_offering_vs_pop"),
+         ggplot(long_dataset_vs_pop) +
+                geom_line(aes(x = year, y=percentage, colour=grouping), stat="identity") +
+                geom_point(aes(x = year, y=percentage, colour=grouping), stat="identity") +
+                scale_y_continuous(limits=c(0, max(long_dataset_vs_pop$percentage))) + 
+                facet_grid(. ~ subject))
+        
+      }
+    }
+    
+    # EBACC
+    if(ks == "GCSE"){
+      
+      long_ebacc <- data.frame()
+      for(y in year_range){
+          yr <- y
+          if(y == year){
+            y <- ""
+          }else{
+            y <- paste0("_",y)
+          }
+          plot_data <- get(paste0("table_",ks,"_student_EBacc",y))
+          # message(plot_data)
+          # message("!")
+          long_ebacc <- rbind(long_ebacc, plot_data)
+      }
+      
+      temp <- long_ebacc %>% select(Year, Subject, total, singles_per, singles_4_per, singles_3_per, core_per)
+      names(temp) <- c("Year", "Subject", "n", "% EBACC single sciences", "% 4 single sciences", "% 3 single sciences", "% EBACC core science")
+      
+      assign(paste0("graph_",ks,"_student_ebacc"),
+            ggplot(long_ebacc) + 
+              geom_line(aes(x = Year, y=singles_per, colour=Subject), stat="identity") +
+              geom_point(aes(x = Year, y=singles_per, colour=Subject), stat="identity") +
+              geom_line(aes(x = Year, y=core_per, colour=Subject), stat="identity") +
+              geom_point(aes(x = Year, y=core_per, colour=Subject), stat="identity")
+      )
+
+    }
+    
+  }
+```

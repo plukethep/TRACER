@@ -1,0 +1,283 @@
+```{r Load_table_qualification_presentation, message=FALSE, debug=TRUE, echo=FALSE}
+
+  # clean data
+  temp_All <- df_All %>% 
+    mutate(Type = ifelse(Type == "GCSE (A* to G)", "GCSE", Type),
+           Type = ifelse(Type == "Vocationally-Related Qualification", "Voc", Type),
+           Type = ifelse(Type == "Functional Skills", "Func skills", Type),
+           Type = ifelse(Type == "Entry Level", "Entry", Type),
+           Type = ifelse(Type == "Other General Qualification", "Other", Type),
+           Type = ifelse(Type == "GCE AS Level", "GCE AS", Type),
+           Type = ifelse(Type == "GCE A Level", "GCE A", Type))
+
+  temp_All <- temp_All %>% mutate(Level = gsub("Entry Level", "Entry", Level))
+  temp_All <- temp_All %>% mutate(Level = gsub("Level", "", Level))
+  
+  temp_All <- temp_All %>% mutate(Name = gsub("Information and Communication Technology \\(ICT\\)", "ICT", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("Information and Communication Technology", "ICT", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("information and communication technology \\(ICT\\)", "ICT", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("information and communication technology", "ICT", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("Information Technology", "IT", Name))
+  
+  temp_All <- temp_All %>% mutate(Name = gsub("at Level 3", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("at level 3", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("at Level 2", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("at level 2", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("at Level 1", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("at level 1", "", Name))
+  
+  temp_All <- temp_All %>% mutate(Name = gsub("Entry Level", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("Level 3", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("Level 1/2", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("Level 1/Level 2", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("Level 1", "", Name))
+  temp_All <- temp_All %>% mutate(Name = gsub("Level 2", "", Name))
+  
+  # hack the short course name into the GCSE code
+  temp_All <- temp_All %>% mutate(QAN = ifelse(is.na(QAN), "", QAN),
+                                  Name = ifelse(QAN == "50085104", "AQA GCSE in ICT (short course)", Name))
+
+  temp_All <- temp_All %>% filter(n != "X") %>% mutate(n = as.numeric(n))
+
+  # raw_year <- 17
+  # ks <- "GCSE"
+
+  for(ks in c("GCSE", "Alevel")){
+    
+    # ks <- "Alevel"
+    # yr <- "17"
+    
+    if(ks == "GCSE"){
+      ks_all <- "KS4"
+    }
+    if(ks == "Alevel"){
+      ks_all <- "KS5"
+    }
+    
+    for(yr in year_range){
+      raw_year <- yr
+      
+      if(yr == year){
+        yr <- "_Current"
+        new_year <- ""
+      }else{
+        new_year <- paste0("_",yr)        
+        yr <- paste0("_",yr)
+      }
+      
+      temp_table <- temp_All %>% filter(course == ks, year == raw_year) %>% 
+              arrange(desc(as.numeric(n))) %>% 
+              select(-course, -year)
+      
+      Totals <- temp_table %>% filter(Name == "Totals")
+      temp_table <- temp_table %>% filter(Name != "Totals", as.numeric(n) > 130) 
+      temp_table <- bind_rows(temp_table, Totals)
+
+        
+      assign(paste0("table_",ks,"_qualifications", new_year),
+             temp_table)
+      
+      temp_table <- temp_table %>% select(-QAN, -`f`, -m) %>% mutate(`f%` = printper(`f%`,1), `m%` = printper(`m%`,1))
+      
+      # save table for printing
+      assign(paste0("out_table_",ks,"_qualifications", new_year),
+        xtable(temp_table,
+                caption=paste0("20", raw_year, " ", ks_all," qualification choices by student gender. Courses with 130 students and over."), 
+                align = autosizeColumns(temp_table, 
+                                        firstfields= c(3.3, 0.3, 0.65), page_width=5.4), 
+                digits= autodecimalColumns(temp_table, 
+                                           firstfields=
+                                             rep(length(names(temp_table))))))
+      
+      temp_table <- get("total_comp_maps") %>% filter(type == "Region", !is.na(Name), course == ks, year == raw_year) %>% select(-year, -course, -type)
+      
+      # table for regional total computing qualifications
+      assign(paste0("out_table_",ks,"_qualifications_region", new_year),
+        xtable(temp_table,
+                caption=paste0("20", raw_year, " ", ks_all," computing qualification by region"), 
+                align = autosizeColumns(temp_table, 
+                                        firstfields= c(2), page_width=4.5), 
+                digits= autodecimalColumns(temp_table, 
+                                           firstfields=
+                                             rep(length(names(temp_table))))))
+      sum(temp_table$`Total students`)
+      sum(temp_table$`Subject students`)
+      # assign(paste0("out_table_",ks,"_qualifications_lea", new_year),
+      #   xtable(get("total_comp_maps") %>% filter(),
+      #           caption=paste0("20", raw_year, " ", ks_all," qualification choices by student gender. Courses with 130 students and over."), 
+      #           align = autosizeColumns(temp_table, 
+      #                                   firstfields= c(3.3, 0.3, 0.65), page_width=5.4), 
+      #           digits= autodecimalColumns(temp_table, 
+      #                                      firstfields=
+      #                                        rep(length(names(temp_table))))))
+```
+    }
+  }
+
+  # table_GCSE_qualifications_Current
+  #  table_GCSE_qualifications_16
+  # table_GCSE_qualifications_17
+
+  # gender graph
+  graph_data <- temp_All %>% ungroup() %>%
+    gather(gender, total, -course, -Type, -year, -QAN, -Name, -Level, -n) %>% 
+    filter(Name == "Totals")
+
+  # 
+  graph_Alevel_quals_gender <- ggplot(graph_data %>% 
+                                        filter(course=="Alevel") %>% 
+                                        filter(gender %in% c("f","m")), 
+                                    aes(year, as.numeric(total),
+                                        fill=factor(gender, levels=c("f","m")))) + 
+    geom_bar(stat = "identity") + 
+    scale_x_discrete(name="Year", limit=year_range) +
+    scale_y_continuous(name="number of qualifications taken", label=scales::comma) + 
+    theme(legend.title=element_blank()) +
+      geom_text(
+        aes(
+        label=total),
+        position=position_stack(vjust=0.5),
+        colour="white")
+
+  graph_GCSE_quals_gender <- ggplot(graph_data %>% 
+                                      filter(course=="GCSE") %>% 
+                                        filter(gender %in% c("f","m")) %>% arrange(as.character(gender)), 
+                                    aes(year, as.numeric(total), 
+                                        fill=factor(gender, levels=c("f","m")))) + 
+    geom_bar(stat = "identity") + 
+    scale_x_discrete(name="Year", limit=year_range) +
+    scale_y_continuous(name="number of qualifications taken", label=scales::comma) +
+        theme(legend.title=element_blank()) +
+      geom_text(
+        aes(
+        label=total),
+        position=position_stack(vjust=0.5),
+        colour="white") 
+ 
+  # 
+  # # numbers of quals graph
+  graph_data <- temp_All %>% 
+    filter(Name != "Totals") %>%
+    group_by(course, year, Type) %>%
+    summarise(n=sum(as.numeric(n), na.rm = TRUE))
+  
+  graph_Alevel_quals_type <- ggplot(graph_data %>% 
+                                      filter(course=="Alevel"), 
+                                    aes(year, n, fill=Type, colour=Type)) + 
+    geom_bar(stat = "identity") + 
+    scale_x_discrete(name="Year", limit=year_range) +
+    scale_y_continuous(name="number of qualifications taken", label=scales::comma) + 
+    theme(legend.title=element_blank())
+  
+  
+  graph_GCSE_quals_type <- ggplot(graph_data %>% 
+                                    filter(course=="GCSE"), 
+                                  aes(year, n, fill=Type, colour=Type)) + 
+    geom_bar(stat = "identity") + 
+    scale_x_discrete(name="Year", limit=year_range) +
+    scale_y_continuous(name="number of qualifications taken", label=scales::comma) + 
+    theme(legend.title=element_blank())
+  
+  # graph overall numbers taking any computing qualification by %
+  
+    graph_data <- total_comp_stu %>% 
+    filter(!is.na(GENDER))
+    
+    graph_GCSE_quals_per_students <- ggplot(graph_data %>% 
+                                      filter(course=="GCSE"), 
+                                    aes(year, 
+                                        printper0(total_qual/total_gender), 
+                                        fill=GENDER, colour=GENDER)) + 
+    geom_bar(stat = "identity", position="dodge") + # + facet_grid(course ~ .)
+    scale_x_discrete(name="Year", limit=year_range) +
+    scale_y_continuous(name="% of gender") + 
+    theme(legend.title=element_blank(),legend.position = "bottom") +
+      geom_text(size=2.5,
+        aes(
+        label=printper0(total_qual/total_gender,1)),
+        position=position_dodge(width=0.8), 
+        vjust=1.2,
+        colour="white")
+
+    graph_Alevel_quals_per_students <- ggplot(graph_data %>% 
+                                      filter(course=="Alevel"), 
+                                    aes(year, 
+                                        printper0(total_qual/total_gender), 
+                                        fill=GENDER, 
+                                        colour=GENDER)) + 
+    geom_bar(stat = "identity", position="dodge") + # + facet_grid(course ~ .)
+    scale_x_discrete(name="Year", limit=year_range) +
+    scale_y_continuous(name="% of gender") + 
+    theme(legend.title=element_blank(),legend.position = "bottom") +
+      geom_text(size=2.5,
+        aes(
+        label=printper0(total_qual/total_gender,1)),
+        position=position_dodge(width=0.8), 
+        vjust=1.2,
+        colour="white")
+    
+  # graph overall numbers taking any computing qualification
+    graph_GCSE_quals_num_students <- ggplot(graph_data %>% 
+                                      filter(course=="GCSE"), 
+                                    aes(year, 
+                                        total_qual, 
+                                        fill=GENDER, colour=GENDER)) + 
+    geom_bar(stat = "identity") + # + facet_grid(course ~ .)
+    scale_x_discrete(name="Year", limit=year_range) +
+    scale_y_continuous(name="number", label=scales::comma) + 
+    theme(legend.title=element_blank(),legend.position = "bottom") +
+      geom_text(size=3, 
+        aes(
+        label=total_qual),
+        position=position_stack(vjust=0.5), 
+        colour="white")
+    
+    graph_Alevel_quals_num_students <- ggplot(graph_data %>% 
+                                      filter(course=="Alevel"), 
+                                    aes(year, 
+                                        total_qual, 
+                                        fill=GENDER, colour=GENDER)) + 
+    geom_bar(stat = "identity") + # + facet_grid(course ~ .)
+    scale_x_discrete(name="Year", limit=year_range) +
+    scale_y_continuous(name="number", label=scales::comma) + 
+    theme(legend.title=element_blank(),
+          legend.position = "bottom") +
+      geom_text(size=3,
+        aes(
+        label=total_qual),
+        position=position_stack(vjust=0.5), 
+        colour="white")
+
+    # graphs for regional all computing qualifications
+    
+    graph_data <- total_comp_maps %>% gather(focus, percentage, -`Name`, -`Total providers`, -`Total students`, 
+                          -`Subject schools`, -`Subject students`, -year, -course, -type)
+
+graph_GCSE_all_comp_region_students <- ggplot(graph_data %>% 
+                                             filter(type == "Region", course == "GCSE", 
+                                                    focus == "% students", !is.na(Name)), 
+                                           aes(year, `percentage`)) + 
+                                      geom_line(aes(color=Name))
+
+graph_Alevel_all_comp_region_students <- ggplot(graph_data %>% 
+                                             filter(type == "Region", course == "Alevel", 
+                                                    focus == "% students", !is.na(Name)), 
+                                           aes(year, `percentage`)) + 
+                                      geom_line(aes(color=Name))
+
+graph_GCSE_all_comp_region_providers <- ggplot(graph_data %>% 
+                                             filter(type == "Region", course == "GCSE", 
+                                                    focus == "% providers", !is.na(Name)), 
+                                           aes(year, `percentage`)) + 
+                                      geom_line(aes(color=Name))
+
+graph_Alevel_all_comp_region_providers <- ggplot(graph_data %>% 
+                                             filter(type == "Region", course == "Alevel", 
+                                                    focus == "% providers", !is.na(Name)), 
+                                           aes(year, `percentage`)) + 
+                                      geom_line(aes(color=Name))
+
+
+
+  
+```

@@ -1,0 +1,33 @@
+
+```{r Load_graph_Student_subject_mix, message=FALSE}
+# output graphs for students taking multiple subjects
+  
+  for (l in c("Alevel", "GCSE")){
+    for (x in c(1:length(comparison_subjects))){
+      
+      assign(paste0("table_",l,"_student_subject_mix_",gsub(" ","",names(comparison_subjects)[x])),
+             OutputSubjectGroupCombinations(get(paste0("Spread_",l,"_Current")), comparison_subjects[[x]]))
+      
+      assign(paste0("graph_",l,"_student_subject_mix_",gsub(" ","",names(comparison_subjects)[x])),
+             plotComparisonSubjectAgainstAll(
+               get(paste0("table_",l,"_student_subject_combo_",gsub(" ","",names(comparison_subjects)[x]))),
+               10,
+               names(comparison_subjects)[x])
+             # plotBarSubjectCombo(get(paste0("table_",l,"_student_subject_mix_",gsub(" ","",names(comparison_subjects)[x]))), 
+             #                     get(paste0("Spread_",l,"_Current")), 
+             #                     quo_name(comparison_subjects[[x]]),
+             #                     names(comparison_subjects)[x], 
+             #                     16)
+      )
+    }
+    # TODO: this prints, cache the output
+    # assign(paste0("graph_",l,"_school_size_cluster"),
+    #        multiplot(get(paste0("graph_",l,"_school_subject_mix_", gsub(" ","",names(comparison_subjects)[1]))), 
+    #                  get(paste0("graph_",l,"_school_subject_mix_", gsub(" ","",names(comparison_subjects)[2]))),
+    #                  get(paste0("graph_",l,"_school_subject_mix_", gsub(" ","",names(comparison_subjects)[3]))), 
+    #                  cols=1))
+  }
+#table_Alevel_student_subject_combo_ComputerScience %>% arrange(desc(n))
+#graph_Alevel_student_subject_mix_ComputerScience
+```
+

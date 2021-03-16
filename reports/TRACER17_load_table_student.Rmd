@@ -1,0 +1,186 @@
+```{r Load_table_Students, message=FALSE, debug=TRUE, echo=FALSE}
+  # for each year get tables for students by
+  # ... gender, SEN, FSM, EAL, WWC, etc
+  
+  # for(sub in comparison_subjects){
+  for(ks in c("GCSE", "Alevel")){
+    for(yr in year_range){
+      raw_year <- yr
+      
+      if(yr == year){
+        yr <- "_Current"
+        new_year <- ""
+      }else{
+        new_year <- paste0("_",yr)        
+        yr <- paste0("_",yr)
+      }
+      
+      message("students", paste(ks, yr))
+      
+      #########
+      ### create student tables
+      #########
+      
+            # get stats on % of female students in given areas:
+      if(ks == "GCSE"){
+        level <- c("310","391")
+      }
+      if(ks == "Alevel"){
+        level <- c("111")
+      }
+
+      for(type in c("LA..code.", "Region")){
+        assign(paste0("table_",ks,"_student_country_female_per_",type,new_year), 
+                  PrepareResolutionWhatData(
+                                           get(paste0("Students_",ks,yr)), 
+                                           get(paste0("Results_",ks,yr)), 
+                                           type, 
+                                           "GENDER", 
+                                           c(subject_code_char), 
+                                           level,
+                                           basefolder) %>% 
+                    filter(GENDER == "F", subTotalWhatPercentage != 0, subTotalWhatPercentage != 100))
+      }
+      # TODO: create heat map of female provision nationally
+      # plotResultsOnHeatMapRS(LAmap, temp, regions=NULL,  title=paste0(subjectName,"schools"))
+      
+      #####
+      
+      
+      # load a summary table of student results split across gender, FSM, ethnicity
+      assign(paste0("table_",ks,"_student_demographic_summary",new_year),
+             getSubjectGradeDemographics(get(paste0("Spread_",ks,yr)), subject_code, ks))
+      
+      # user the above table to create summary tables for Gender, FSM, Ethnicity, etc
+      assign(paste0("table_",ks,"_student_gender",new_year), 
+             OutputSubjectGradeDemographicSummary(get(paste0("table_",ks,"_student_demographic_summary",new_year)), 
+                                                  c("GENDER")))
+      assign(paste0("table_",ks,"_student_ethmaj",new_year), 
+             OutputSubjectGradeDemographicSummary(get(paste0("table_",ks,"_student_demographic_summary",new_year)), 
+                                                  c("EthMaj")))
+      assign(paste0("table_",ks,"_student_sen",new_year), 
+             OutputSubjectGradeDemographicSummary(get(paste0("table_",ks,"_student_demographic_summary",new_year)), 
+                                                  c("SEN")))
+      assign(paste0("table_",ks,"_student_fsm",new_year), 
+             OutputSubjectGradeDemographicSummary(get(paste0("table_",ks,"_student_demographic_summary",new_year)), 
+                                                  c("EVERFSM_6")))
+      assign(paste0("table_",ks,"_student_eal",new_year), 
+             OutputSubjectGradeDemographicSummary(get(paste0("table_",ks,"_student_demographic_summary",new_year)), 
+                                                  c("EAL")))
+      assign(paste0("table_",ks,"_student_workingclass",new_year), 
+             OutputSubjectGradeDemographicSummary(get(paste0("table_",ks,"_student_demographic_summary",new_year)), 
+                                                  c("GENDER", "EthMaj", "EVERFSM_6")))
+      
+      
+      
+      
+      # get stats on students taking each subject
+      assign(paste0("table_",ks,"_student_taking_everfsm_6",new_year), 
+             OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "EVERFSM_6", 30))
+      assign(paste0("table_",ks,"_student_taking_idaciscore",new_year), 
+             OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "IDACIScore", 30))
+      assign(paste0("table_",ks,"_student_taking_ks2mat",new_year), 
+             OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "KS2Mat", 30))
+      if(ks == "GCSE"){
+        assign(paste0("table_",ks,"_student_taking_gcsemat",new_year), 
+               OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "X2210", 30))        
+      }
+      if(ks == "Alevel" & yr == "_Current"){
+            assign(paste0("table_",ks,"_student_taking_gcsemat",new_year), 
+               OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "GCSE_maths", 30))        
+      }
+      
+      assign(paste0("table_",ks,"_student_taking_gender",new_year), 
+             OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "GENDER", 30, TRUE))
+      assign(paste0("table_",ks,"_student_taking_sen",new_year), 
+             OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "SEN", 30, TRUE))
+      assign(paste0("table_",ks,"_student_taking_eal",new_year), 
+             OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "EAL", 30, TRUE))
+      assign(paste0("table_",ks,"_student_taking_ethmaj",new_year), 
+             OutputSubjectGroupAverageByWhat(get(paste0("Spread_",ks,yr)), quo_name(subject_code), "EthMaj", 30, TRUE))
+      
+      
+      # get stats on ethnicity of students
+      EthOne <- OutputEthnicityBreakdownEthMaj(get(paste0("Spread_",ks,yr)), comparison_subjects[[1]])
+      EthTwo <- OutputEthnicityBreakdownEthMaj(get(paste0("Spread_",ks,yr)),  comparison_subjects[[2]])
+      EthThree <- OutputEthnicityBreakdownEthMaj(get(paste0("Spread_",ks,yr)), comparison_subjects[[3]])
+      
+      EthOne["Sub2%"]  <- EthTwo$`Sub %`
+      EthOne["Sub2"]   <- EthTwo$`Sub Total`
+      EthOne["Sub3%"]  <- EthThree$`Sub %`
+      EthOne["Sub3"]   <- EthThree$`Sub Total`
+      
+      EthOne <- EthOne %>% 
+        select(Ethnicity, Total, `Pop %`,
+               `Sub Total`, `Sub2`, `Sub3`,
+               `Sub %`, `Sub2%`,`Sub3%`) %>%
+        arrange(desc(Total))
+      
+      names(EthOne) <- c("Ethnicity", "Total", "Pop %", 
+                         names(comparison_subjects)[1],
+                         names(comparison_subjects)[2],
+                         names(comparison_subjects)[3],
+                         paste(names(comparison_subjects)[1], "%"),
+                         paste(names(comparison_subjects)[2], "%"),
+                         paste(names(comparison_subjects)[3], "%"))
+      
+      assign(paste0("table_",ks,"_student_ethnicity_sub_comparison",new_year), EthOne)
+      
+      # table_GCSE_student_ethnicity_sub_comparison
+      
+      
+      # get tables on students grouped by !!thing for given subject and year compared to population
+      for(subs in comparison_subjects){
+        for(thing in c("EthMaj", "EAL", "SEN", "EVERFSM_6", "GENDER")){
+          #ks <- "GCSE"
+          #yr <- "_17"
+          #new_year <- ""
+          assign(paste0("table_",ks,"_",quo_name(subs),"_student_pop_vs_",tolower(thing),new_year),
+               get_thing_comp_to_pop(sym(thing), 
+                                     subs,
+                                     yr,
+                                     get(paste0("Spread_",ks,yr))))
+        
+        }
+      }
+
+      # get% of students getting over a C grade
+      assign(paste0("table_",ks,"_student_ksavggrade_gender",new_year),
+             OutputSubjectCplusPassByWhat(get(paste0("Spread_",ks,yr)), 
+                                          ks, subject_code, "GENDER", 20))
+      assign(paste0("table_",ks,"_student_ksavggrade_fsm",new_year),
+             OutputSubjectCplusPassByWhat(get(paste0("Spread_",ks,yr)), 
+                                          ks, subject_code, "EVERFSM_6", 20))
+      
+      # percentage of students taking sub and other subjects
+      assign(paste0("table_",ks,"_student_subject_combo_",gsub(" ", "",names(comparison_subjects[1])),new_year),
+             ComparisonTakingSubjects(get(paste0("Spread_",ks,yr)), 
+                                      focus = quo_name(comparison_subjects[[1]])))
+      
+      assign(paste0("table_",ks,"_student_subject_combo_",gsub(" ", "",names(comparison_subjects[2])),new_year),
+             ComparisonTakingSubjects(get(paste0("Spread_",ks,yr)), 
+                                      focus = quo_name(comparison_subjects[[2]])))
+      
+      assign(paste0("table_",ks,"_student_subject_combo_",gsub(" ", "",names(comparison_subjects[3])),new_year),
+             ComparisonTakingSubjects(get(paste0("Spread_",ks,yr)), 
+                                      focus = quo_name(comparison_subjects[[3]])))
+
+      # EBACC only applicable for GCSE
+      if(ks == "GCSE"){
+        
+        focus_sub_ebacc <- OutputEBACCSummary(get(paste0("Spread_",ks,yr)), paste0("X",subject_code_char))
+        focus_sub_ebacc$Subject <- subject_name
+        focus_sub_ebacc$Year <- raw_year
+        all_sub_ebacc <-  OutputEBACCSummary(get(paste0("Spread_",ks,yr)), "ALL")
+        all_sub_ebacc$Subject <- "All"
+        all_sub_ebacc$Year <- raw_year
+        
+        assign(paste0("table_",ks,"_student_EBacc",new_year),
+               rbind(focus_sub_ebacc,all_sub_ebacc))
+        
+      }
+
+      
+    }
+  }
+```

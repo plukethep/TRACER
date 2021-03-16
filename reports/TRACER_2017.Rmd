@@ -1,0 +1,1430 @@
+---
+output:
+  pdf_document:
+    fig_height: 4
+    fig_caption: yes
+    includes:
+      before_body: prebody-latex.tex
+      in_header: preamble-latex.tex
+    keep_tex: yes
+    latex_engine: xelatex
+    number_sections: yes
+  word_document:
+    toc: yes
+csl: apa.csl
+bibliography: bibliography.bib
+---
+
+\pagebreak
+
+```{r TRACER_setup, echo=FALSE, include=FALSE, warning=FALSE, cache=FALSE}
+ 
+knitr::opts_chunk$set(cache=TRUE, echo = FALSE, warning = FALSE, message = FALSE, dpi=200)
+library(knitr)
+library(grid)
+library(gridExtra)
+
+options(hline.after=c(-1))
+options(xtable.comment=FALSE)
+options(xtable.table.placement="H") #!h
+options(xtable.include.rownames=FALSE)
+options(xtable.tabular.environment="longtable")
+options(xtable.keep.trailing.zeros=TRUE)
+options(xtable.caption.placement = "top")
+# opts_knit$set(eval.after = "fig.cap")
+
+basefolder <- paste(strsplit(getwd(), "/")[[1]][c(1:length(strsplit(getwd(), "/")[[1]]) - 1)], collapse = "/")
+codefolder <- paste0(basefolder, "/code/")
+source(paste0(codefolder,'Tools.R'))
+source(paste0(codefolder,'Collation.R'))
+source(paste0(codefolder,'Graphs.R'))
+source(paste0(codefolder,'Loading.R'))
+source(paste0(codefolder,'Tables.R'))
+source(paste0(codefolder,'Statistics.R'))
+source(paste0(codefolder,'DfEAnalysis.R'))
+source(paste0(codefolder,'PrettyPrinting.R'))
+
+#https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf
+#eval = TRUE #Whether to evaluate the code and include its results
+#echo = TRUE #Whether to display code along with its results
+#warning = TRUE #Whether to display warnings
+#error = FALSE #Whether to display errors
+#message = TRUE #Whether to display messages
+
+```
+```{r TRACER_Pretty_Functions, include=FALSE, warning=FALSE}
+
+map_width <- 6.5#'100%'
+map_height <- 8#'100%'
+
+map_height_small <- 3.5#'100%'
+map_height_london <- 3
+map_height_london_small <- 2.5
+graph_height <- 3
+
+london_map_height <- 3
+london_map_width <- 4
+```
+```{r TRACER_Load_Data_Global, echo=FALSE, include=FALSE}
+datafolder <- paste0(basefolder, "/data/")
+cleanfolder <- paste0(basefolder, "/data/cleaned/")
+schools <- loadSchools(dir=basefolder)
+postcodes <- loadPostcodes(dir=basefolder)
+mapping_codes <- loadDiscMappings(dir=basefolder)
+
+LAmap <- loadMap("LEA", dir=basefolder)
+Regionmap <- loadMap("Region", dir=basefolder)
+LEAs <- getLocalEducationAuthorities(dir=basefolder)
+  
+# subject_name <- "Computer Science"
+# subject_code_char <- "2610"
+# subject_code <- quo(X2610)
+# music 7010
+
+subject_name <- "Computer Science"
+subject_code_char <- "2610"
+subject_code <- quo(X2610)
+
+level <- "310"
+year <- 17
+year_range <- c(14:17)
+comparison_subjects <- c(subject_code,quo(X1210),quo(X2650))
+names(comparison_subjects) <- c(subject_name,"Physics", "ICT")
+```
+
+```{r TRACER_Load_Data_GCSE_Years, echo=FALSE, include=FALSE}
+
+#load all Students, Results and Spreads for GCSE/A-level into global variables
+for(yr in year_range){ 
+  # 310 = GCSE; 111 = A-Level; 121 = AS-Level
+  initialiseDataFrames("KS4", "GCSE", as.character(yr), cleanfolder)
+}
+```
+
+```{r TRACER_Load_Data_Alevel_Years, echo=FALSE, include=FALSE}
+
+#load all Students, Results and Spreads for GCSE/A-level into global variables
+for(yr in year_range){ 
+  # 310 = GCSE; 111 = A-Level; 121 = AS-Level
+  initialiseDataFrames("KS5", "Alevel", as.character(yr), cleanfolder)
+}
+```
+
+```{r child="TRACER17_global_variables.Rmd", echo=FALSE, include=FALSE} 
+```
+
+```{r child="TRACER17_load_table_provider.Rmd"}
+```
+
+```{r child="TRACER17_load_table_student.Rmd"}
+```
+
+```{r child="TRACER17_load_table_student_printing.Rmd"}
+```
+
+```{r child="TRACER17_load_table_provider_printing.Rmd"}
+```
+
+```{r child="TRACER17_load_graph_student.Rmd"}
+```
+
+```{r child="TRACER17_load_graph_student_subject_mix.Rmd"}
+```
+
+```{r child="TRACER17_load_graph_provider_longitudinal.Rmd"}
+```
+
+```{r child="TRACER17_load_graph_provision_cluster_size.Rmd"}
+```
+
+```{r child="TRACER17_load_maps_heat_maps.Rmd"}
+```
+
+```{r child="TRACER17_load_maps_scatter_maps.Rmd"}
+```
+
+```{r child="TRACER17_load_table_qualification.Rmd"}
+```
+
+```{r child="TRACER17_load_table_qualification_presentation.Rmd"}
+```
+
+```{r Load_graph_Provision_cumulative_multi_subject, message=FALSE}
+
+# plot cumlative frequency graph of subjects
+data_main_sub <- OutputSubjectBySchoolSize(Spread_GCSE_Current, subject_code, subject_name)
+data_second_sub <- OutputSubjectBySchoolSize(Spread_GCSE_Current, comparison_subjects[[2]], names(comparison_subjects)[2])
+data_third_sub <- OutputSubjectBySchoolSize(Spread_GCSE_Current, comparison_subjects[[3]], names(comparison_subjects)[3])
+cohortdata <- rbind(data_main_sub, rbind(data_second_sub, data_third_sub))
+graph_GCSE_cohort_size_cumulative <- plotEntriesCohortSize(cohortdata, subject_name, comparison_subjects, 19)
+
+data_main_sub <- OutputSubjectBySchoolSize(Spread_Alevel_Current, subject_code, subject_name)
+data_second_sub <- OutputSubjectBySchoolSize(Spread_Alevel_Current, comparison_subjects[[2]], names(comparison_subjects)[2])
+data_third_sub <- OutputSubjectBySchoolSize(Spread_Alevel_Current, comparison_subjects[[3]], names(comparison_subjects)[3])
+cohortdata <- rbind(data_main_sub, rbind(data_second_sub, data_third_sub))
+graph_Alevel_cohort_size_cumulative <- plotEntriesCohortSize(cohortdata, subject_name, comparison_subjects, 11)
+```
+
+```{r Load_graph_Provision_cohort_box_plot, message=FALSE}
+# box plot of cohort sizes
+box_data <- OutputSubjectsBySchoolSize(Spread_GCSE_Current, focus=subject_code, subsize=50)
+graph_GCSE_Box_Cohort <- plotBoxEntriesCohortSize(box_data, subject_name, 20)
+
+box_data <- OutputSubjectsBySchoolSize(Spread_Alevel_Current, focus=subject_code, subsize=50)
+graph_Alevel_Box_Cohort <- plotBoxEntriesCohortSize(box_data, subject_name, 11.7)
+```
+
+```{r Load_Stats_Provision_cohort_medians, message=FALSE}
+# box plot of cohort sizes
+# TODO: output trends for year on year cohort sizes
+
+
+```
+
+
+```{r Load_stats_Provider}
+stat_GCSE_provider_type_noprovision <- table_GCSE_provider_type %>% filter(`Subject Providers` == 0) %>%
+                                              select(Type, `Total Schools`)
+stat_GCSE_provider_type_noprovision <- paste0(stat_GCSE_provider_type_noprovision$Type,
+                                              " (n=",
+                                              stat_GCSE_provider_type_noprovision$`Total Schools`, 
+                                              collapse="); ")
+
+
+stat_Alevel_provider_type_noprovision <- table_Alevel_provider_type %>% filter(`Subject Providers` == 0) %>%
+                                              select(Type, `Total Schools`)
+stat_Alevel_provider_type_noprovision <- paste0(stat_Alevel_provider_type_noprovision$Type,
+                                              " (n=",
+                                              stat_Alevel_provider_type_noprovision$`Total Schools`, 
+                                              collapse="); ")
+```
+
+\pagebreak
+
+#Executive Summary
+
+```{r child="TRACER_2017_commentary/TRACER_executive_summary.Rmd"}
+```
+
+##Key Findings
+
+```{r child="TRACER_2017_commentary/TRACER_key_findings.Rmd"}
+```
+
+\pagebreak
+
+##Recommendations
+```{r child="TRACER_2017_commentary/TRACER_recommendations.Rmd"}
+```
+
+\pagebreak
+
+\tableofcontents
+
+\pagebreak
+
+\listoffigures
+
+\pagebreak
+
+\listoftables
+
+\pagebreak
+
+#About the study
+```{r child="TRACER_2017_commentary/TRACER_about_the_study.Rmd"}
+```
+
+#Terminology
+```{r child="TRACER_2017_commentary/TRACER_terminology.Rmd"}
+```
+
+\pagebreak
+
+#Research areas
+
+\pagebreak
+
+##Provider profile
+There are many _types_ of school specified by the DfE [-@DfETypesOfSchool]. Using data from Edubase [@Edubase], students taking computing exams can be mapped to their school's profile and the school types and participation patterns analysed^[A less fine grained analysis was recently conducted by Cambridge Assessment [@OCRschooltype]].
+
+\pagebreak
+
+### Governance
+```{r child="TRACER_2017_commentary/TRACER_provider_governance.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_KS4_Type_Governance_Graph, results="asis"}
+print(out_table_GCSE_provider_type, rotate.colnames = TRUE)
+```
+Note that the following provider types had no GCSE `r subject_name` examination cohorts in 20`r year` (n = total number of providers): `r stat_GCSE_provider_type_noprovision`).
+\pagebreak
+
+```{r Output_KS4_Type_Governance_Provider, fig.cap=paste("GCSE ", subject_name, " provider uptake by governance. 20", min(year_range), "-", max(year_range), sep=""), fig.height=graph_height}
+graph_GCSE_provider_type_provider
+```
+
+```{r Output_KS4_Type_Governance_Students, fig.cap=paste("GCSE ", subject_name, " student uptake by governance. 20", min(year_range), "-", max(year_range), sep=""), fig.height=graph_height}
+graph_GCSE_provider_type_students
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_KS5_Type_Governance_Graph, results="asis"}
+print(out_table_Alevel_provider_type, rotate.colnames = TRUE) 
+```
+Note that the following provider types had no Alevel `r subject_name` examination cohorts in 20`r year` (n = total number of providers): `r stat_Alevel_provider_type_noprovision`).
+\pagebreak
+
+```{r Output_KS5_Type_Governance_Provider, fig.cap=paste("A-level ", subject_name, " provider uptake by governance. 20", min(year_range), "-",max(year_range), sep=""), fig.height=graph_height}
+graph_Alevel_provider_type_provider  
+```
+
+```{r Output_KS5_Type_Governance_Students, fig.cap=paste("A-level ", subject_name, " student uptake by by governance. 20", min(year_range), "-",max(year_range), sep=""), fig.height=graph_height}
+graph_Alevel_provider_type_students  
+```
+
+\pagebreak
+
+###Multi academy trusts
+```{r child="TRACER_2017_commentary/TRACER_provider_mats.Rmd"}
+```
+
+\pagebreak
+
+####KS4
+
+```{r Output_KS4_Type_Trust_Graph, results="asis"}
+print(out_table_GCSE_provider_trust, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_Trust_Provider, fig.cap=paste0("GCSE ", subject_name, " provider uptake by trust. 20", min(year_range), "-",max(year_range), sep="")}
+#print(graph_GCSE_provider_trust_provider)
+```
+
+```{r Output_KS4_Type_Trust_Students, fig.cap=paste0("GCSE ", subject_name, " student uptake by trust. 20", min(year_range), "-",max(year_range), sep="")}
+#print(graph_GCSE_provider_trust_students)
+```
+
+\pagebreak
+
+####KS5
+
+```{r Output_KS5_Type_Trust_Graph, results="asis", cache=FALSE}
+print(out_table_Alevel_provider_trust, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_Trust_provider, fig.cap=paste0("A-level ", subject_name, " provider uptake by trust. 20", min(year_range), "-", max(year_range)), fig.height=graph_height}
+#graph_Alevel_provider_trust_provider
+```
+
+```{r Output_KS5_Type_Trust_Students, fig.cap=paste0("A-level ", subject_name, " student uptake by trust. 20", min(year_range), "-",max(year_range))}
+#graph_Alevel_provider_trust_students
+```
+
+
+\pagebreak
+
+###Admissions policy
+```{r child="TRACER_2017_commentary/TRACER_provider_admissions.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_KS4_Type_Selective_Table, results="asis", cache=FALSE}
+print(out_table_GCSE_provider_selective, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_Selective_Graph_Provider, fig.cap=paste0("GCSE ", subject_name, " provider uptake by admission profile. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+print(graph_GCSE_provider_selective_provider)
+```
+
+```{r Output_KS4_Type_Selective_Graph_students, fig.cap=paste0("GCSE ", subject_name, " student uptake by provider admission profile. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+print(graph_GCSE_provider_selective_students)
+```
+
+\pagebreak 
+
+```{r Output_KS4_Type_Mixed_no_female, results="asis", cache=FALSE}
+print(out_table_GCSE_provider_mixed_no_female)
+```
+
+
+```{r Output_KS4_Type_Mixed_Graph_no_female, fig.cap=paste0("GCSE ", subject_name, " mixed providers without any females. 20", min(year_range), "-",max(year_range))}
+print(graph_GCSE_provider_mixed_no_female)
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_KS5_Type_Selective_Table, results="asis", cache=FALSE}
+print(out_table_Alevel_provider_selective, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_Selective_Graph_Provider, fig.cap=paste0("A-level ", subject_name, " provider uptake by provider admission profile. 20", min(year_range), "-",max(year_range))}
+print(graph_Alevel_provider_selective_provider)
+```
+
+```{r Output_KS5_Type_Selective_Graph_students, fig.cap=paste0("A-level ", subject_name, " student uptake by provider admission profile. 20", min(year_range), "-",max(year_range))}
+print(graph_Alevel_provider_selective_students)
+```
+
+\pagebreak 
+
+```{r Output_KS5_Type_Mixed_no_female, results="asis", cache=FALSE}
+print(out_table_Alevel_provider_mixed_no_female)
+```
+
+```{r Output_KS5_Type_Mixed_Graph_no_female, fig.cap=paste0("Alevel ", subject_name, " mixed providers without any females. 20", min(year_range), "-",max(year_range))}
+print(graph_Alevel_provider_mixed_no_female)
+```
+
+\pagebreak
+
+### Gender
+```{r child="TRACER_2017_commentary/TRACER_provider_gender.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_KS4_Type_Gender_Graph, results="asis"}
+print(out_table_GCSE_provider_gender, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_Gender_Graph_Provider, fig.cap=paste0("GCSE ", subject_name, " provider uptake by provider gender characteristic. 20", min(year_range), "-",max(year_range))}
+print(graph_GCSE_provider_gender_provider)
+```
+
+```{r Output_KS4_Type_Gender_Graph_students, fig.cap=paste0("GCSE ", subject_name, " student uptake by provider gender characteristic. 20", min(year_range), "-",max(year_range))}
+print(graph_GCSE_provider_gender_students)
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_KS5_Type_Gender_Graph, results="asis"}
+print(out_table_Alevel_provider_gender, rotate.colnames = TRUE)
+```
+
+```{r Output_KS5_Type_Gender_Graph_Provider, fig.cap=paste0("A-level ", subject_name, " provider uptake by provider gender characteristic. 20", min(year_range), "-",max(year_range))}
+print(graph_Alevel_provider_gender_provider)
+```
+
+```{r Output_KS5_Type_Gender_Graph_Students, fig.cap=paste0("A-level ", subject_name, " student uptake by provider gender characteristic. 20", min(year_range), "-",max(year_range))}
+print(graph_Alevel_provider_gender_students)
+```
+
+\pagebreak
+
+### Region
+```{r child="TRACER_2017_commentary/TRACER_provider_region.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_KS4_Type_Region_Table, results="asis"}
+print(out_table_GCSE_provider_region, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+\blandscape
+
+```{r Output_KS4_Type_Region_Graph_provider, fig.cap=paste("20", year," ", subject_name," GCSE ", " provider uptake by provider admission profile. 20", min(year_range), "-",max(year_range), sep=""), fig.height=map_height, fig.width=14, cache=FALSE}
+print(graph_GCSE_provider_region_provider)  
+```
+
+\elandscape
+
+\blandscape
+
+```{r Output_KS4_Type_Region_Graph_students, fig.cap=paste("20", year," ", subject_name," GCSE ", " student uptake by provider admission profile. 20", min(year_range), "-",max(year_range), sep=""), fig.height=map_height, fig.width=14, cache=FALSE}
+graph_GCSE_provider_region_students   
+```
+
+\elandscape
+
+```{r Output_KS4_Type_Region_Graph_provider_heat, fig.cap=paste("20", year," ", subject_name, " GCSE regional provider uptake", sep=""), fig.height=map_height}
+map_heat_GCSE_provider_region  
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_Region_Graph_student_heat, fig.cap=paste("20", year," ", subject_name, " GCSE regional student uptake", sep=""), fig.height=map_height}
+map_heat_GCSE_student_region  
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_KS5_Type_Region_Table, results="asis", cache=FALSE}
+print(out_table_Alevel_provider_region, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+\blandscape
+
+```{r Output_KS5_Type_Region_Graph_Provider, fig.cap=paste0("A-level ", subject_name, " provider uptake by admission profile. 20", min(year_range), "-",max(year_range)), fig.height=map_height, fig.width=14}
+print(graph_Alevel_provider_region_provider) 
+```
+
+\elandscape
+
+\blandscape
+
+```{r Output_KS5_Type_Region_Graph_students, fig.cap=paste0("A-level ", subject_name, " student uptake by provider admission profile. 20", min(year_range), "-",max(year_range), "( Special providers omitted due to small numbers)"), fig.height=map_height, fig.width=14}
+print(graph_Alevel_provider_region_students) 
+```
+
+\elandscape
+
+```{r Output_KS5_Type_Region_Graph_provider_heat, fig.cap=paste("20", year," ", subject_name, " A-level regional provider provision", sep=""), fig.height=map_height}
+map_heat_Alevel_provider_region
+```
+
+```{r Output_KS5_Type_Region_Graph_student_heat, fig.cap=paste("20", year," ", subject_name, " A-level regional student uptake", sep=""), fig.height=map_height}
+map_heat_Alevel_student_region
+```
+
+\pagebreak
+
+### Local Authority
+```{r child="TRACER_2017_commentary/TRACER_provider_lea.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_KS4_Type_LEA_Table, results="asis", cache=FALSE}
+print(out_table_GCSE_provider_lea, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_LEA_Table_bottom, results="asis", cache=FALSE}
+print(out_table_GCSE_provider_lea_bottom, rotate.colnames = TRUE)
+```
+
+
+\pagebreak
+
+```{r Output_KS4_Type_LEA_Graph_Provider, fig.cap=paste0("GCSE ", subject_name, " provider uptake by provider admission profile. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+# graph_GCSE_provider_lea_provider
+```
+
+```{r Output_KS4_Type_LEA_Graph_students, fig.cap=paste0("GCSE ", subject_name, " student uptake by provider admission profile. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+# graph_GCSE_provider_lea_students
+```
+
+```{r Output_KS4_Type_LEA_Graph_provider_heat, fig.cap=paste("20", year," ", subject_name, " GCSE local authority provider provision", sep=""), fig.height=map_height}
+map_heat_GCSE_provider_lea
+```
+
+```{r Output_KS4_Type_LEA_Graph_student_heat, fig.cap=paste("20", year," ", subject_name, " GCSE local authority student uptake", sep=""), fig.height=map_height}
+map_heat_GCSE_student_lea
+```
+
+```{r Output_KS4_Type_LEA_Graph_provider_scatter, fig.cap=paste("20", year," ", subject_name, " GCSE providers", sep=""), fig.height=map_height}
+map_scatter_GCSE_provider_lea
+# TODO: check provider type as many schools coming up as NA
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_LEA_Graph_provider_scatter_london, fig.cap=paste("20", year," ", subject_name, " GCSE providers, London", sep=""), fig.width=map_width, fig.height=map_height_london}
+map_scatter_GCSE_provider_lea_london
+# TODO: sort out fig height
+```
+
+```{r Output_KS4_Type_LEA_Graph_provider_heat_london, fig.cap=paste("20", year," ", subject_name, " GCSE providers and students, London", sep=""), fig.width=map_width, fig.height=map_height_london_small}
+multiplot(map_heat_GCSE_provider_lea_london, map_heat_GCSE_student_lea_london, cols = 2)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_LEA_Graph_provider_scatter_leeds, fig.cap=paste("20", year," ", subject_name, " GCSE providers, Leeds", sep=""), fig.width=map_width}
+map_scatter_GCSE_provider_lea_leeds
+```
+
+```{r Output_KS4_Type_LEA_Graph_provider_heat_leeds, fig.cap=paste("20", year," ", subject_name, " GCSE providers and students, Leeds", sep=""), fig.width=map_width, fig.height=map_height_london}
+multiplot(map_heat_GCSE_provider_lea_leeds, map_heat_GCSE_student_lea_leeds, cols = 2)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_LEA_Graph_provider_scatter_birmingham, fig.cap=paste("20", year," ", subject_name, " GCSE providers, Birmingham", sep=""), fig.width=map_width}
+map_scatter_GCSE_provider_lea_birmingham
+```
+
+```{r Output_KS4_Type_LEA_Graph_provider_heat_birmingham, fig.cap=paste("20", year," ", subject_name, " GCSE providers and students, Birmingham", sep=""), fig.height=map_height_london_small}
+multiplot(map_heat_GCSE_provider_lea_birmingham, map_heat_GCSE_student_lea_birmingham, cols = 2)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_LEA_Graph_provider_scatter_manchliver, fig.cap=paste("20", year," ", subject_name, " GCSE providers, Manchester and Liverpool", sep=""), fig.width=map_width}
+map_scatter_GCSE_provider_lea_manchliver
+```
+
+```{r Output_KS4_Type_LEA_Graph_provider_heat_manchliver, fig.cap=paste("20", year," ", subject_name, " GCSE providers and students, Manchester and Liverpool", sep=""), fig.height=map_height_london_small}
+multiplot(map_heat_GCSE_provider_lea_manchliver, map_heat_GCSE_student_lea_manchliver, cols = 2)
+
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_KS5_Type_LEA_Table, results="asis", cache=FALSE}
+print(out_table_Alevel_provider_lea, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_LEA_Table_bottom, results="asis", cache=FALSE}
+print(out_table_Alevel_provider_lea_bottom, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_LEA_Graph_Provider, fig.cap=paste0("Alevel ", subject_name, " provider uptake by provider admission profile. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+# graph_Alevel_provider_lea_provider
+```
+
+```{r Output_KS5_Type_LEA_Graph_students, fig.cap=paste0("Alevel ", subject_name, " student uptake by provider admission profile. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+# graph_Alevel_provider_lea_students
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_LEA_Graph_provider_heat, fig.cap=paste("20", year," ", subject_name, " A-level local authority provider provision", sep=""), fig.height=map_height}
+map_heat_Alevel_provider_lea
+```
+
+```{r Output_KS5_Type_LEA_Graph_student_heat, fig.cap=paste("20", year," ", subject_name, " A-level local authority student uptake", sep=""), fig.height=map_height}
+map_heat_Alevel_student_lea
+```
+
+```{r Output_KS5_Type_LEA_Graph_provider_scatter, fig.cap=paste("20", year," ", subject_name, " A-level providers", sep=""), fig.height=map_height}
+map_scatter_Alevel_provider_lea
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_LEA_Graph_provider_scatter_london, fig.cap=paste("20", year," ", subject_name, " A-level providers, London", sep=""), fig.width=map_width, fig.height=map_height_london}
+map_scatter_Alevel_provider_lea_london
+```
+
+```{r Output_KS5_Type_LEA_Graph_provider_heat_london, fig.cap=paste("20", year," ", subject_name, " A-level providers and students, London", sep=""), fig.width=map_width, fig.height=map_height_london_small}
+multiplot(map_heat_Alevel_provider_lea_london, map_heat_Alevel_student_lea_london, cols = 2)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_LEA_Graph_provider_scatter_leeds, fig.cap=paste("20", year," ", subject_name, " A-level providers, Leeds", sep=""), fig.width=map_width}
+map_scatter_Alevel_provider_lea_leeds
+```
+
+```{r Output_KS5_Type_LEA_Graph_provider_heat_leeds, fig.cap=paste("20", year," ", subject_name, " A-level providers and students, Leeds", sep=""), fig.width=map_width, fig.height=map_height_london}
+multiplot(map_heat_Alevel_provider_lea_leeds, map_heat_Alevel_student_lea_leeds, cols = 2)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_LEA_Graph_provider_scatter_birmingham, fig.cap=paste("20", year," ", subject_name, " A-level providers, Birmingham", sep=""), fig.width=map_width}
+map_scatter_Alevel_provider_lea_birmingham
+```
+
+```{r Output_KS5_Type_LEA_Graph_provider_heat_birmingham, fig.cap=paste("20", year," ", subject_name, " A-level providers and students, Birmingham", sep=""), fig.width=map_width, fig.height=map_height_small}
+multiplot(map_heat_Alevel_provider_lea_birmingham, map_heat_Alevel_student_lea_birmingham, cols = 2)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_LEA_Graph_provider_scatter_manchliver, fig.cap=paste("20", year," ", subject_name, " A-level providers, Manchester and Liverpool", sep=""), fig.height=map_height_london_small}
+map_scatter_Alevel_provider_lea_manchliver
+```
+
+```{r Output_KS5_Type_LEA_Graph_provider_heat_manchliver, fig.cap=paste("20", year," ", subject_name, " A-level providers and students, Manchester and Liverpool", sep=""), fig.height=map_height_london_small}
+multiplot(map_heat_Alevel_provider_lea_manchliver, map_heat_Alevel_student_lea_manchliver, cols = 2)
+```
+
+\pagebreak
+
+### Rural and Urban
+```{r child="TRACER_2017_commentary/TRACER_provider_rural_urban.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_KS4_Type_Urban_Rural_Table, results="asis", cache=FALSE}
+print(out_table_GCSE_provider_urban_rural, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_Urban_Rural_Graph_Provider, fig.cap=paste0("GCSE ", subject_name, " provider uptake by provider admission profile. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+print(graph_GCSE_provider_urban_rural_provider)
+```
+
+```{r Output_KS4_Type_Urban_Rural_Graph_students, fig.cap=paste0("GCSE ", subject_name, " student uptake by provider admission profile. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+print(graph_GCSE_provider_urban_rural_students)
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_KS5_Type_Urban_Rural_Table, results="asis", cache=FALSE}
+print(out_table_Alevel_provider_urban_rural, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_Urban_Rural_Graph_Provider, fig.cap=paste0("A-level ", subject_name, " provider uptake by urban/rural categorisation. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+print(graph_Alevel_provider_urban_rural_provider)
+```
+
+```{r Output_KS5_Type_Urban_Rural_Graph_students, fig.cap=paste0("A-level ", subject_name, " student uptake by provider urban/rural categorisation. 20", min(year_range), "-",max(year_range)), cache=FALSE}
+print(graph_Alevel_provider_urban_rural_students)
+```
+
+\pagebreak
+
+### Coastal and inland
+```{r child="TRACER_2017_commentary/TRACER_provider_coastal_inland.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_KS4_Type_Coastal_Table, results="asis"}
+print(out_table_GCSE_provider_coastal, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS4_Type_Coastal_Graph_Provider, fig.cap=paste("GCSE ", subject_name, " provider uptake by coastal categorisation. 20", min(year_range), "-", max(year_range))}
+graph_GCSE_provider_coastal_provider
+```
+
+```{r Output_KS4_Type_Coastal_Graph_students, fig.cap=paste("GCSE ", subject_name, " student uptake by provider coastal categorisation. 20", min(year_range), "-",max(year_range))}
+graph_GCSE_provider_coastal_students
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_KS5_Type_Coastal_Table, results="asis"}
+print(out_table_Alevel_provider_coastal, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_KS5_Type_Coastal_Graph_Provider, fig.cap=paste0("A-level ", subject_name, " provider uptake by coastal categorisation. 20", min(year_range), "-",max(year_range))}
+print(graph_Alevel_provider_coastal_provider)
+```
+
+```{r Output_KS5_Type_Coastal_Graph_students, fig.cap=paste0("A-level ", subject_name, " student uptake by provider coastal categorisation. 20", min(year_range), "-",max(year_range))}
+print(graph_Alevel_provider_coastal_students)
+```
+
+\pagebreak
+
+### Provider / cohort size
+```{r child="TRACER_2017_commentary/TRACER_provider_size.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+
+```{r Output_graph_GCSE_cohort_size_cumulative, fig.cap=paste("20",year, " ", subject_name ," GCSE cohort sizes cumulative", sep=""), fig.height=5}
+graph_GCSE_cohort_size_cumulative
+```
+
+\pagebreak
+
+```{r Output_GCSE_school_size_cluster_comparison, fig.cap=paste("20",year, " ", subject_name, " GCSE offering by school cohort size", sep=""), fig.height=graph_height}
+multiplot(get(paste0("graph_GCSE_school_size_cluster_", gsub(" ","",names(comparison_subjects[1])))),
+          get(paste0("graph_GCSE_school_size_cluster_", gsub(" ","",names(comparison_subjects[2])))),
+          get(paste0("graph_GCSE_school_size_cluster_", gsub(" ","",names(comparison_subjects[3])))),cols=3)
+
+```
+
+```{r Output_GCSE_school_subjects_cluster_comparison, fig.cap=paste("20",year, " ", subject_name, " GCSE offering by number of qualifications offered", sep=""), fig.height=graph_height}
+multiplot(get(paste0("graph_GCSE_school_subjects_cluster_", gsub(" ","",names(comparison_subjects[1])))),
+          get(paste0("graph_GCSE_school_subjects_cluster_", gsub(" ","",names(comparison_subjects[2])))),
+          get(paste0("graph_GCSE_school_subjects_cluster_", gsub(" ","",names(comparison_subjects[3])))),cols=3)
+
+```
+
+\pagebreak
+
+```{r Output_graph_GCSE_Box_Cohort, fig.cap=paste("20",year, " ", subject_name, " GCSE all subjects cohort size spread", sep=""), fig.height=9}
+graph_GCSE_Box_Cohort
+```
+
+```{r Output_graph_GCSE_Box_percentage_Cohort, fig.cap=paste("20",year, " ", subject_name, " GCSE cohort size as percentage of school", sep=""), fig.height=9}
+comp <- Ouput_subject_cohort_percentage(Spread_GCSE_Current, quo(X2610), 1) %>% filter(per != 0)
+ict <- Ouput_subject_cohort_percentage(Spread_GCSE_Current, quo(X2650), 1) %>% filter(per != 0)
+physics <- Ouput_subject_cohort_percentage(Spread_GCSE_Current, quo(X1210), 1) %>% filter(per != 0)
+tmp <- rbind(comp,rbind(ict,physics))
+
+#order by median size
+data <- tmp %>% ungroup() %>%
+  group_by(Subject) %>%
+  mutate(mdn = median(as.numeric(per))) %>%
+  ungroup() %>%
+  arrange(mdn, Subject) %>%
+  group_by(Subject) %>%
+  mutate(outlier.high = per > quantile(per, 0.75) + 1.50*IQR(per),
+         outlier.low = per < quantile(per, 0.25) - 1.50*IQR(per),
+         outlier.color = "black")#case_when(outlier.high ~ "black",
+#   outlier.low ~ "steelblue"))
+
+data$Subject <- as.vector(data$Subject) #get rid of factors
+data$Subject <- factor(data$Subject,unique(data$Subject))
+
+data <- left_join(data %>% ungroup(), 
+                  loadDiscMappings(basefolder) %>% mutate(MAPPING = paste0("X", MAPPING)), 
+                  by=c("Subject"="MAPPING")) %>% 
+  mutate(Subject = MAPPING_DESCRIPTION) %>% 
+  select(-MAPPING_DESCRIPTION)
+
+ggplot(data, aes(Subject, per)) +
+  geom_jitter(color=data$outlier.color, width=0.3, size=(data$total/50), alpha=0.1) +  
+  geom_boxplot(outlier.shape = NA, alpha=0.7 ) +
+  scale_x_discrete("Subjects") + coord_flip()
+
+# TODO: make dots gender coloured?
+# TODO: check the average and median cohort size for computing and plot it for A-level
+```
+
+```{r Output_table_GCSE_possible_students, results="asis"}
+print(out_table_GCSE_provider_percentage, rotate.colnames=TRUE)
+```
+
+```{r Output_graph_GCSE_possible_students, fig.cap=paste("Longitudinal:", subject_name, " GCSE uptake of all possible schools and students", sep=""), fig.height=4}
+# TODO: sort out column widths
+
+#### for % of school offering
+long_provider <- data.frame()
+for(ks in c("GCSE", "Alevel")){
+  for(y in year_range){
+    if(y == year){
+      yr <- ""
+    }else{
+      yr <- paste0("_",y)
+    }
+    temp <- get(paste0("table_",ks,"_provider_percentage",yr)) %>% 
+      filter(`Subject code` %in% sapply(comparison_subjects, function(x) quo_name(x))) %>%
+      select(Subject, `Providers %`, `Students % able to sit subject`, `Student % of offered students`)
+    temp$Year <- y
+    temp$KS <- ks
+    long_provider <- rbind(long_provider, temp)
+  }
+}
+names(long_provider) <- c("Subject", "subject reach\nprovider %", "subject reach\nstudent %", "subject actual\nstudent %", "Year","KS")
+
+long_provider <- long_provider %>% gather(Type, Percentage, -Subject, -Year, -KS)
+
+#plot data
+plot_data <- long_provider %>% filter(KS == "GCSE")
+graph_GCSE_long_provider_offering <- ggplot(plot_data) +
+  geom_line(aes(x = Year, y=Percentage, colour=Subject), stat="identity") +
+  facet_grid(. ~ Type) +
+  scale_y_continuous(limits=c(0, max(plot_data$Percentage)))+
+    theme(legend.position="bottom")
+  
+
+#plot data
+plot_data <- long_provider %>% filter(KS == "Alevel")
+graph_Alevel_long_provider_offering <- ggplot(plot_data) +
+  geom_line(aes(x = Year, y=Percentage, colour=Subject), stat="identity") +
+  facet_grid(. ~ Type) +
+  scale_y_continuous(limits=c(0, max(plot_data$Percentage))) +
+    theme(legend.position="bottom")
+
+
+graph_GCSE_long_provider_offering 
+# TODO: sort out graph columns and column names
+```
+
+\pagebreak
+
+#### KS5
+
+```{r Output_graph_Alevel_cohort_size_cumulative, fig.cap=paste("20",year, " ", subject_name ," A-level cohort sizes cumulative", sep=""), fig.height=5}
+graph_Alevel_cohort_size_cumulative
+```
+
+\pagebreak
+
+```{r Output_Alevel_school_size_cluster_comparison, fig.cap=paste("20",year, " ", subject_name, " A-level offering by school cohort size", sep=""), fig.height=graph_height}
+multiplot(get(paste0("graph_Alevel_school_size_cluster_", gsub(" ","",names(comparison_subjects[1])))),
+          get(paste0("graph_Alevel_school_size_cluster_", gsub(" ","",names(comparison_subjects[2])))),
+          get(paste0("graph_Alevel_school_size_cluster_", gsub(" ","",names(comparison_subjects[3])))),cols=3)
+
+```
+
+```{r Output_Alevel_school_subjects_cluster_comparison, fig.cap=paste("20",year, " ", subject_name, " Alevel offering by number of qualifications offered", sep=""), fig.height=graph_height}
+multiplot(get(paste0("graph_Alevel_school_subjects_cluster_", gsub(" ","",names(comparison_subjects[1])))),
+          get(paste0("graph_Alevel_school_subjects_cluster_", gsub(" ","",names(comparison_subjects[2])))),
+          get(paste0("graph_Alevel_school_subjects_cluster_", gsub(" ","",names(comparison_subjects[3])))),cols=3)
+
+```
+
+\pagebreak
+
+```{r Output_graph_Alevel_Box_Cohort, fig.cap=paste("20",year, " ", subject_name, " A-level all subjects cohort size spread", sep=""), fig.height=9}
+graph_Alevel_Box_Cohort
+```
+
+\pagebreak
+
+```{r Output_graph_Alevel_Box_percentage_Cohort, fig.cap=paste("20",year, " ", subject_name, " A-level cohort size as percentage of school", sep=""), fig.height=9}
+# output a table showing the percentages of cohort taking given subject for each URN
+comp <- Ouput_subject_cohort_percentage(Spread_Alevel_Current, quo(X2610), 1) %>% filter(per != 0)
+ict <- Ouput_subject_cohort_percentage(Spread_Alevel_Current, quo(X2650), 1) %>% filter(per != 0)
+physics <- Ouput_subject_cohort_percentage(Spread_Alevel_Current, quo(X1210), 1) %>% filter(per != 0)
+tmp <- rbind(comp,rbind(ict,physics))
+
+#order by median size
+data <- tmp %>% ungroup() %>%
+  group_by(Subject) %>%
+  mutate(mdn = median(as.numeric(per))) %>%
+  ungroup() %>%
+  arrange(mdn, Subject) %>%
+  group_by(Subject) %>%
+  mutate(outlier.high = per > quantile(per, 0.75) + 1.50*IQR(per),
+         outlier.low = per < quantile(per, 0.25) - 1.50*IQR(per),
+         outlier.color = "black")#case_when(outlier.high ~ "black",
+#   outlier.low ~ "steelblue"))
+
+data$Subject <- as.vector(data$Subject) #get rid of factors
+data$Subject <- factor(data$Subject,unique(data$Subject))
+
+data <- left_join(data %>% ungroup(), 
+                  loadDiscMappings(basefolder) %>% mutate(MAPPING = paste0("X", MAPPING)), 
+                  by=c("Subject"="MAPPING")) %>% 
+  mutate(Subject = MAPPING_DESCRIPTION) %>% 
+  select(-MAPPING_DESCRIPTION)
+
+ggplot(data, aes(Subject, per)) +
+  geom_jitter(color=data$outlier.color, width=0.3, size=(data$total/50), alpha=0.1) +  
+  geom_boxplot(outlier.shape = NA, alpha=0.7 ) +
+  scale_x_discrete("Subjects") + coord_flip()
+```
+
+```{r Output_table_Alevel_possible_students, results="asis"}
+print(out_table_Alevel_provider_percentage, rotate.colnames=TRUE)
+```
+
+```{r Output_graph_Alevel_possible_students, fig.cap=paste("Longitudinal:", subject_name, " Alevel uptake of all possible schools and students", sep=""), fig.height=4}
+graph_Alevel_long_provider_offering 
+```
+
+\pagebreak
+
+##Student profile
+
+\pagebreak
+
+### Gender
+```{r child="TRACER_2017_commentary/TRACER_student_gender.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_table_GCSE_student_gender_longitudinal, fig.cap=paste("Longitudinal: GCSE female uptake by subject", sep=""), fig.height=graph_height}
+graph_GCSE_long_gender_offering
+
+```
+
+```{r Output_table_GCSE_student_gender, results="asis", cache=FALSE}
+out_table_GCSE_student_gender 
+# TODO: add % female for region and LEA
+```
+
+```{r Output_graph_GCSE_student_gender, fig.cap=paste("20",year, " ", subject_name, " GCSE gender grade outcomes", sep=""), fig.height=graph_height}
+multiplot(graph_GCSE_student_gender_total, graph_GCSE_student_gender_percentage, cols = 2)
+```
+
+\pagebreak
+
+```{r Output_graph_GCSE_student_cgrade, fig.cap=paste("20",year, " ", subject_name, " GCSE C grade passrate comparison for gender", sep=""), fig.height=graph_height}
+graph_GCSE_student_cgrade_gender
+```
+
+\pagebreak
+
+```{r Output_table_GCSE_provider_lea_female_top, results="asis", cache=FALSE}
+print(out_table_GCSE_provider_lea_female_top, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_table_GCSE_provider_lea_female_bottom, results="asis", cache=FALSE}
+print(out_table_GCSE_provider_lea_female_bottom, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+```{r Output_table_GCSE_provider_region_female, results="asis", cache=FALSE}
+print(out_table_GCSE_provider_region_female, rotate.colnames = TRUE)
+```
+
+```{r Output_graph_GCSE_provider_lea_map, fig.cap=paste0("20",year, " ", subject_name, " GCSE female provision by local authority."), fig.height=map_height}
+map_heat_GCSE_gender_lea
+```
+
+Note that 0 provision local authorities appear as grey. The City of London is not shown to prevent the 100% provision skewing the data.
+
+```{r Output_graph_GCSE_provider_region_map, fig.cap=paste0("20",year, " ", subject_name, " GCSE female provision by region."), fig.height=map_height}
+map_heat_GCSE_gender_region
+```
+
+
+\pagebreak
+
+#### KS5
+```{r Output_table_Alevel_student_gender_longitudinal, fig.cap=paste("Longitudinal: Alevel female uptake by subject", sep=""), fig.height=graph_height}
+graph_Alevel_long_gender_offering
+```
+
+```{r Output_table_Alevel_student_gender, results="asis", cache=FALSE}
+out_table_Alevel_student_gender 
+```
+
+```{r Output_graph_Alevel_student_gender, fig.cap=paste("20",year, " ", subject_name, " GCSE gender grade outcomes", sep=""), fig.height=graph_height} 
+multiplot(graph_Alevel_student_gender_total, graph_Alevel_student_gender_percentage, cols = 2)
+```
+
+\pagebreak
+
+```{r Output_graph_Alevel_student_cgrade, fig.cap=paste("20",year, " ", subject_name, " A-level C grade passrate comparison for gender", sep=""), fig.height=graph_height}
+graph_Alevel_student_cgrade_gender
+```
+
+\pagebreak
+
+```{r Output_table_Alevel_provider_lea_female, cache=FALSE}
+# print(out_table_Alevel_provider_lea_female_top, rotate.colnames = TRUE)
+num_none <- table_Alevel_provider_lea_female %>% filter(`Total CS providers` == 0, Name != "0") %$% nrow(.)
+names_num_none <- table_Alevel_provider_lea_female %>% filter(`Total CS providers` == 0, Name != "0") %$% Name
+
+num_females <- table_Alevel_provider_lea_female %>% filter(as.numeric(`% of subject students`) == 0.0) %$% nrow(.)
+names_non_females <- table_Alevel_provider_lea_female %>% filter(as.numeric(`% of subject students`) == 0.0) %$% Name
+
+##There were `r num_females` Alevel LEAs with CS provision but no females, namely:  `r paste(names_non_females, collapse=", ")`. In addition, `r num_none` local authorities had no CS provision, namely `r paste(names_num_none, collapse=", ")`.  Numbers are small across all local authorities, we have chosen to remove the local authority table to maintain the anonymity of students.
+
+#have moved this section to summary
+```
+
+```{r Output_table_Alevel_provider_region_female, results="asis", cache=FALSE}
+print(out_table_Alevel_provider_region_female, rotate.colnames = TRUE)
+```
+
+```{r Output_graph_Alevel_provider_region_map, fig.cap=paste0("20",year, " ", subject_name, " A-level female provision by region."), fig.height=map_height}
+map_heat_Alevel_gender_region
+```
+
+\pagebreak
+
+###Socio-economic status
+```{r child="TRACER_2017_commentary/TRACER_student_socio_economic.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+
+```{r Output_table_GCSE_student_fsm_longitudinal, fig.cap=paste("Longitudinal: GCSE pupil premium uptake by subject", sep=""), fig.height=graph_height}
+graph_GCSE_long_everfsm_6_offering
+```
+
+```{r Output_table_GCSE_student_idaci_longitudinal, fig.cap=paste("Longitudinal: GCSE IDACI uptake by subject (note that IDACI calculations changed after 2015)", sep=""), fig.height=graph_height}
+graph_GCSE_long_idaciscore_offering
+```
+
+```{r Output_table_GCSE_student_fsm, results="asis"}
+out_table_GCSE_student_fsm
+```
+
+```{r Output_graph_GCSE_student_fsm_grades, fig.cap=paste("20",year, " ", subject_name, " GCSE pupil-premium grade outcomes", sep=""), fig.height=graph_height} 
+multiplot(graph_GCSE_student_fsm_total, graph_GCSE_student_fsm_percentage, cols = 2)  
+```
+
+\pagebreak
+
+```{r Output_graph_GCSE_student_taking_fsm, fig.cap=paste("20",year, " ", subject_name, " GCSE pupil premium intake", sep=""), fig.height=graph_height}
+graph_GCSE_student_taking_fsm 
+```
+
+```{r Output_graph_GCSE_student_taking_idaci, fig.cap=paste("20",year, " ", subject_name, " GCSE average IDACI score of intake", sep=""), fig.height=graph_height}
+graph_GCSE_student_taking_idaci 
+```
+
+\pagebreak
+
+```{r Output_graph_GCSE_student_fsm, fig.cap=paste("20",year, " ", subject_name, " GCSE pupil-premium C grade passrate", sep=""), fig.height=graph_height}
+
+#message("graph_GSCE_student_cgrade_fsm", " EXISTS ", exists("graph_GSCE_student_cgrade_fsm"))
+
+# TODO: find out why this isn't found?!
+# graph_GSCE_student_cgrade_fsm
+
+
+```
+
+```{r Output_graph_GCSE_student_nonfsm, fig.cap=paste("20",year, " ", subject_name, " GCSE non pupil-premium C grade passrate", sep=""), fig.height=graph_height}
+
+#message("graph_GSCE_student_cgrade_fsm", " EXISTS ", exists("graph_GSCE_student_cgrade_fsm"))
+
+# TODO: find out why this isn't found?!
+# graph_GSCE_student_cgrade_nonfsm
+
+```
+
+
+\pagebreak
+
+#### KS5
+
+```{r Output_table_Alevel_student_fsm_longitudinal, fig.cap=paste("Longitudinal: Alevel pupil premium uptake by subject", sep=""), fig.height=graph_height}
+graph_Alevel_long_everfsm_6_offering
+
+```
+
+```{r Output_table_Alevel_student_idaci_longitudinal, fig.cap=paste("Longitudinal: Alevel IDACI uptake by subject (note that IDACI values changed calculations changed in 2015)", sep=""), fig.height=graph_height}
+graph_Alevel_long_idaciscore_offering
+```
+
+```{r Output_table_Alevel_student_fsm, results="asis"}
+out_table_Alevel_student_fsm
+```
+
+```{r Output_graph_Alevel_student_fsm_grades, fig.cap=paste("20",year, " ", subject_name, " A-level pupil-premium grade outcomes", sep=""), fig.height=4} 
+multiplot(graph_Alevel_student_fsm_total, graph_Alevel_student_fsm_percentage, cols = 2)   
+```
+
+\pagebreak
+
+```{r Output_graph_Alevel_student_taking_fsm, fig.cap=paste("20",year, " ", subject_name, " A-level pupil premium intake", sep=""), fig.height=graph_height}
+graph_Alevel_student_taking_fsm  
+```
+
+```{r Output_graph_Alevel_student_taking_idaci, fig.cap=paste("20",year, " ", subject_name, " A-level average IDACI score of intake", sep=""), fig.height=graph_height}
+graph_Alevel_student_taking_idaci  
+```
+
+\pagebreak
+
+```{r Output_graph_Alevel_student_fsm, fig.cap=paste("20",year, " ", subject_name, " A-level pupil-premium C grade passrate", sep=""), fig.height=4}
+graph_Alevel_student_cgrade_fsm
+```
+
+```{r Output_graph_Alevel_student_nonfsm, fig.cap=paste("20",year, " ", subject_name, " A-level non pupil-premium C grade passrate", sep=""), fig.height=4}
+graph_Alevel_student_cgrade_nonfsm
+```
+
+\pagebreak
+
+### Ethnicity
+```{r child="TRACER_2017_commentary/TRACER_student_ethnicity.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_table_GCSE_student_ethmaj_longitudinal, fig.cap=paste("Longitudinal: GCSE uptake by ethnicity as % of whole population taking subject ", sep="")}
+graph_GCSE_long_ethmaj_offering_vs_pop 
+```
+
+```{r Output_table_GCSE_student_ethnicity_comparison, results="asis"}
+print(out_table_GCSE_student_ethnicity_sub_comparison, rotate.colnames = TRUE)
+```
+
+```{r Output_KS4_Ethnicity_Asian, fig.cap=paste0("20", year, "GCSE ", subject_name, " Asian student subject representation")}
+graph_GCSE_student_ethnicity_ASIA
+```
+
+```{r Output_KS4_Ethnicity_Black, fig.cap=paste0("20", year, "GCSE ", subject_name, " Black student subject representation")}
+graph_GCSE_student_ethnicity_BLAC
+```
+
+```{r Output_KS4_Ethnicity_Chinese, fig.cap=paste0("20", year, "GCSE ", subject_name, " Chinese student subject representation")}
+graph_GCSE_student_ethnicity_CHIN
+```
+
+```{r Output_KS4_Ethnicity_Mixed, fig.cap=paste0("20", year, "GCSE ", subject_name, " Mixed student subject representation")}
+graph_GCSE_student_ethnicity_MIXD
+```
+
+```{r Output_KS4_Ethnicity_White, fig.cap=paste0("20", year, "GCSE ", subject_name, " White student subject representation")}
+graph_GCSE_student_ethnicity_WHIT
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_table_Alevel_student_ethmaj_longitudinal, fig.cap=paste("Longitudinal: Alevel uptake by ethnicity as % of whole population taking subject ", sep="")}
+graph_Alevel_long_ethmaj_offering_vs_pop
+```
+
+```{r Output_table_Alevel_student_ethnicity_comparison, results="asis", cache=FALSE}
+print(out_table_Alevel_student_ethnicity_sub_comparison, rotate.colnames = TRUE) 
+```
+
+```{r Output_KS5_Ethnicity_Asian, fig.cap=paste0("20", year, "A-level ", subject_name, " Asian student subject representation")}
+graph_Alevel_student_ethnicity_ASIA
+```
+
+```{r Output_KS5_Ethnicity_Black, fig.cap=paste0("20", year, "A-level ", subject_name, " Black student subject representation")}
+graph_Alevel_student_ethnicity_BLAC
+```
+
+```{r Output_KS5_Ethnicity_Chinese, fig.cap=paste0("20", year, "A-level ", subject_name, " Chinese student subject representation")}
+graph_Alevel_student_ethnicity_CHIN
+```
+
+```{r Output_KS5_Ethnicity_Mixed, fig.cap=paste0("20", year, "A-level ", subject_name, " Mixed student subject representation")}
+graph_Alevel_student_ethnicity_MIXD
+```
+
+```{r Output_KS5_Ethnicity_White, fig.cap=paste0("20", year, "A-level ", subject_name, " White student subject representation")}
+graph_Alevel_student_ethnicity_WHIT
+```
+
+\pagebreak
+
+###SEN
+```{r child="TRACER_2017_commentary/TRACER_student_sen.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_table_GCSE_student_sen, results="asis", cache=FALSE}
+# TODO: One row for each categorisation. Add explanation of Categorisations.
+out_table_GCSE_student_sen_uptake
+```
+
+```{r Output_graph_GCSE_SEN, fig.cap=paste0("Longitudinal: GCSE students who have SEN categorisation, by subject and year")}
+graph_GCSE_long_sen_offering
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_table_Alevel_student_sen, results="asis", cache=FALSE}
+# TODO: One row for each categorisation. Add explanation of Categorisations.
+out_table_Alevel_student_sen_uptake
+```
+
+```{r Output_graph_Alevel_SEN, fig.cap=paste0("Longitudinal: Alevel students who have SEN categorisation, by subject and year")}
+graph_Alevel_long_sen_offering
+```
+
+\pagebreak
+
+###EAL
+```{r child="TRACER_2017_commentary/TRACER_student_eal.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_table_GCSE_student_eal, results="asis", cache=FALSE}
+# TODO: One row for each categorisation. Add explanation of Categorisations.
+out_table_GCSE_student_eal_uptake
+
+# 1=Eng as first language
+# 2=EAL
+# 3=unclassified language
+
+```
+
+```{r Output_graph_GCSE_eal, fig.cap=paste0("Longitudinal: GCSE students who have English as an additional language, by subject and year")}
+graph_GCSE_long_eal_offering
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_table_Alevel_student_eal, results="asis", cache=FALSE}
+# TODO: One row for each categorisation. Add explanation of Categorisations.
+out_table_Alevel_student_eal_uptake
+```
+
+```{r Output_graph_Alevel_eal, fig.cap=paste0("Longitudinal: Alevel students who have English as an additional language, by subject and year")}
+graph_Alevel_long_eal_offering
+```
+
+\pagebreak
+
+### Entry grade profile
+```{r child="TRACER_2017_commentary/TRACER_student_grades.Rmd"}
+```
+
+#### KS4
+```{r Output_table_GCSE_student_entry_KS2Mat, results="asis", cache=FALSE}
+out_table_GCSE_student_taking_ks2mat
+```
+
+\pagebreak
+Note that the GCSE grades here have been converted from the 9-1 system into A*-U system (or 8-1 as noted above). This allows for consistency across subjects and will change in the 2018 report.
+```{r Output_table_GCSE_student_entry_GCSEMat, results="asis", cache=FALSE}
+# TODO: add sort out 1-9 grading
+out_table_GCSE_student_taking_gcsemat
+```
+
+\pagebreak
+
+#### KS5
+
+```{r Outpt_table_Alevel_student_entry_KS2Mat, results="asis", cache=FALSE}
+out_table_Alevel_student_taking_ks2mat
+```
+
+\pagebreak
+Note that the GCSE grades here have been converted from the 9-1 system into A*-U system (or 8-1 as noted above). This allows for consistency across subjects and will change in the 2018 report.
+```{r Output_table_Alevel_student_entry_GCSEMat, results="asis", cache=FALSE}
+# 
+out_table_Alevel_student_taking_gcsemat
+```
+
+\pagebreak
+
+###Subject mix
+```{r child="TRACER_2017_commentary/TRACER_student_subject_mix.Rmd"}
+```
+
+\pagebreak
+
+#### KS4
+```{r Output_graph_GCSE_subject_mix_computing, fig.cap=paste("20",year, " ", names(comparison_subjects[1]), " GCSE subject choice combinations", sep=""), fig.height=3.7, cache=FALSE}
+get(paste0("graph_GCSE_student_subject_mix_", gsub(" ","",names(comparison_subjects[1]))))
+```
+
+```{r Output_graph_GCSE_subject_mix_ICT, fig.cap=paste("20",year, " ", names(comparison_subjects[2]), " GCSE subject choice combinations", sep=""), fig.height=3.7, cache=FALSE}
+get(paste0("graph_GCSE_student_subject_mix_", gsub(" ","",names(comparison_subjects[2]))))
+```
+
+```{r Output_graph_GCSE_subject_mix_Physics, fig.cap=paste("20",year, " ", names(comparison_subjects[3]), " GCSE subject choice combinations", sep=""), fig.height=3.7, cache=FALSE}
+get(paste0("graph_GCSE_student_subject_mix_", gsub(" ","",names(comparison_subjects[3]))))
+```
+
+##### EBacc
+
+```{r Output_table_GCSE_EBACC, cache=FALSE, results="asis"}
+print(out_table_GCSE_student_ebacc, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+#### KS5
+```{r Output_graph_Alevel_subject_mix_computing, fig.cap=paste("20",year, " ", names(comparison_subjects[1]), " A-level subject choice combinations", sep=""), fig.height=3.7, cache=FALSE}
+get(paste0("graph_Alevel_student_subject_mix_", gsub(" ","",names(comparison_subjects[1]))))
+```
+
+```{r Output_graph_Alevel_subject_mix_ICT, fig.cap=paste("20",year, " ", names(comparison_subjects[2]), " A-level subject choice combinations", sep=""), fig.height=3.7, cache=FALSE}
+get(paste0("graph_Alevel_student_subject_mix_", gsub(" ","",names(comparison_subjects[2]))))
+```
+
+```{r Output_graph_Alevel_subject_mix_Physics, fig.cap=paste("20",year, " ", names(comparison_subjects[3]), " A-level subject choice combinations", sep=""), fig.height=3.7, cache=FALSE}
+get(paste0("graph_Alevel_student_subject_mix_", gsub(" ","",names(comparison_subjects[3]))))
+```
+
+\pagebreak
+
+##Qualifications overview
+
+```{r child="TRACER_2017_commentary/TRACER_qualifications.Rmd"}
+```
+
+\pagebreak
+
+### KS4
+```{r Output_KS4_Qualifications, results="asis", cache=FALSE}
+print(out_table_GCSE_qualifications, rotate.colnames = FALSE)
+```
+
+```{r Output_KS4_Qualifications_graph_type, fig.cap=paste("KS4 computing qualifications by year and type. 20", min(year_range), "-", max(year_range), sep=""), fig.height=graph_height, cache=FALSE}
+graph_GCSE_quals_type 
+```
+
+```{r Output_KS4_Qualifications_graph_gender, fig.cap=paste("KS4 total computing qualifications by year and gender. 20", min(year_range), "-", max(year_range), sep=""), fig.height=graph_height, cache=FALSE}
+graph_GCSE_quals_gender 
+```
+
+```{r Output_KS4_Qualifications_graph_gender_totals, fig.cap=paste("KS4 computing uptake by year and gender. 20", min(year_range), "-", max(year_range), sep=""), fig.height=graph_height, cache=FALSE}
+multiplot(graph_GCSE_quals_num_students, graph_GCSE_quals_per_students, cols = 2)
+```
+
+```{r Output_KS4_IGCSE, results="asis", cache=FALSE}
+print(out_table_GCSE_IGCSE, rotate.colnames = FALSE)
+```
+
+\pagebreak
+
+```{r Output_KS4_Qualifications_region, results="asis", cache=FALSE}
+print(out_table_GCSE_qualifications_region, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+### KS5
+
+```{r Output_KS5_Qualifications, results="asis", cache=FALSE}
+print(out_table_Alevel_qualifications, rotate.colnames = FALSE)
+```
+
+```{r Output_KS5_Qualifications_graph_type, fig.cap=paste("KS5 computing qualifications by year and type. 20", min(year_range), "-", max(year_range), sep=""), fig.height=graph_height, cache=FALSE}
+graph_Alevel_quals_type 
+```
+
+```{r Output_KS5_Qualifications_graph_gender, fig.cap=paste("KS5 total computing qualifications by year and gender. 20", min(year_range), "-", max(year_range), sep=""), fig.height=graph_height , cache=FALSE}
+graph_Alevel_quals_gender 
+```
+
+```{r Output_KS5_Qualifications_graph_gender_totals, fig.cap=paste("KS5 computing uptake by year and gender. 20", min(year_range), "-", max(year_range), sep=""), fig.height=graph_height, cache=FALSE}
+multiplot(graph_Alevel_quals_num_students, graph_Alevel_quals_per_students, cols = 2)
+```
+
+```{r Output_KS5_Qualifications_region, results="asis", cache=FALSE}
+print(out_table_Alevel_qualifications_region, rotate.colnames = TRUE)
+```
+
+\pagebreak
+
+#Notes
+```{r child="TRACER_2017_commentary/TRACER_notes.Rmd"}
+```
+
+#Acknowledgements
+- The DfE NPD team for providing the data. All responsibility for inferences and conclusions in this report lie with its authors.
+- The Royal Society Computing Education team for allowing me to release some of the code used on their project under an open source license, thus speeding up the creation of this report.
+
+\pagebreak
+
+#References

@@ -1,0 +1,42 @@
+```{r Load_maps_Provider_Scatter_Maps, message=FALSE}
+# Build heat maps for providers and students for a range of regions
+  
+  for (course in c("Alevel", "GCSE")){
+    
+    
+    assign(paste0("map_scatter_",course,"_provider_lea"),
+           plotResultsOnScatterMap(LAmap, 
+                                   get(paste0("table_",course,"_provider_all")),
+                                   NULL, 
+                                   paste(subject_name, focus, "providers - England")),
+           envir = .GlobalEnv)
+    
+    assign(paste0("map_scatter_",course,"_provider_lea_london"),
+           plotResultsOnScatterMap(LAmap, 
+                                   get(paste0("table_",course,"_provider_all")),
+                                   loadLondonLEAs(), 
+                                   paste(subject_name, focus, "providers - London")),
+           envir = .GlobalEnv)
+    
+    assign(paste0("map_scatter_",course,"_provider_lea_manchliver"),
+           plotResultsOnScatterMap(LAmap, 
+                                   get(paste0("table_",course,"_provider_all")),
+                                   loadManchLiverLEAs(), 
+                                   paste(subject_name, focus, "providers - Manchester & Liverpool")),
+           envir = .GlobalEnv)
+    
+    assign(paste0("map_scatter_",course,"_provider_lea_birmingham"),
+           plotResultsOnScatterMap(LAmap, 
+                                   get(paste0("table_",course,"_provider_all")),
+                                   loadBirminghamLEAs(), 
+                                   paste(subject_name, focus, "providers - Birmingham")),
+           envir = .GlobalEnv)
+    
+    assign(paste0("map_scatter_",course,"_provider_lea_leeds"),
+           plotResultsOnScatterMap(LAmap, 
+                                   get(paste0("table_",course,"_provider_all")),
+                                   loadLeedsLEAs(), 
+                                   paste(subject_name, focus, "providers - Leeds")),
+           envir = .GlobalEnv)
+  }
+```

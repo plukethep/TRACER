@@ -1,0 +1,141 @@
+```{r Load_graph_Provider_longitudinal, message=FALSE, echo=FALSE}
+# Build the 5 year longitudinal graphs for each of the sections of the report
+ 
+  for (course in c("Alevel", "GCSE")){
+    
+    message(paste0("table_",course,"_provider_type"))
+    message(paste(course, "Provider"))
+    
+    # Provider type
+    items <- get(paste0("table_",course,"_provider_type")) %>% top_n(8,as.numeric(`Total Students`)) %$% Type
+
+    # items <- c("Academy converter", "Community school", "Academy sponsor led", "Foundation school", "Voluntary aided school", "Other independent school", "Voluntary controlled school")
+     
+    assign(paste0("graph_",course,"_provider_type_provider"), 
+           plotYearlyData(paste0("table_",course,"_provider_type"), "Type", "Providers %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    assign(paste0("graph_",course,"_provider_type_students"), 
+           plotYearlyData(paste0("table_",course,"_provider_type"), "Type", "Students %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    
+    # TODO: Combine multiple trusts into one
+    # items <- c("Academy converter", "LA schools", "Academy sponsor led", "Other independent school", )
+    # "LA schools" = "Foundation school", "Voluntary aided school","Voluntary controlled school"
+    
+    
+    message(paste(course, "Trusts"))
+    
+    
+    #Trusts
+    items <- get(paste0("table_",course,"_provider_trust")) %>% 
+      filter(as.numeric(`Total Students`) > 300, `Trust` != "Totals") %>%
+      arrange(desc(`Students %`)) %>% top_n(10) %$% Trust
+    assign(paste0("graph_",course,"_provider_trust_provider"), 
+           plotYearlyData(paste0("table_",course,"_provider_trust"), "Trust", "Providers %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    assign(paste0("graph_",course,"_provider_trust_students"), 
+           plotYearlyData(paste0("table_",course,"_provider_trust"), "Trust", "Students %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    
+    # Gender and school type
+    ## needs to gather on two items
+    #items <- table_GCSE_provider_mixed %>% filter(is.na(Type)) %$% Gender
+    # graph_GCSE_provider_mixed_provider <- plotYearlyData("table_GCSE_provider_mixed", "Type", "Providers %", items, year_range, subject_name)
+    # graph_GCSE_provider_mixed_students <- plotYearlyData("table_GCSE_provider_mixed", "Type", "Students %", items, year_range, subject_name)
+    
+    # Gender and selective
+    ## needs to gather on two items
+    #items <- table_GCSE_provider_selective_gender %>% filter(is.na(Type)) %$% Gender
+    # graph_GCSE_provider_selective_gender_provider <- plotYearlyData("table_GCSE_provider_selective_gender", "Type", "Providers %", items, year_range, subject_name)
+    # graph_GCSE_provider_selective_gender_students <- plotYearlyData("table_GCSE_provider_selective_gender", "Type", "Students %", items, year_range, subject_name)
+    
+    message(paste(course, "Gender"))
+    
+    # gender provider
+    items <- table_GCSE_provider_gender %>% filter(Gender != "Totals") %$% Gender
+    assign(paste0("graph_",course,"_provider_gender_provider"),
+           plotYearlyData(paste0("table_",course,"_provider_gender"), "Gender", "Providers %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    assign(paste0("graph_",course,"_provider_gender_students"),
+           plotYearlyData(paste0("table_",course,"_provider_gender"), "Gender", "Students %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    
+    message(paste(course, "Selective"))
+    
+    # selective
+    items <- table_GCSE_provider_selective %>% filter(Type != "Totals") %$% Type
+    assign(paste0("graph_",course,"_provider_selective_provider"),
+           plotYearlyData(paste0("table_",course,"_provider_selective"), "Type", "Providers %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    assign(paste0("graph_",course,"_provider_selective_students"),
+           plotYearlyData(paste0("table_",course,"_provider_selective"), "Type", "Students %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    
+    message(paste(course, "Rural"))
+    
+    # Rural Urban
+    items <- table_GCSE_provider_urban_rural %>% filter(Type != "Totals") %$% Type
+    assign(paste0("graph_",course,"_provider_urban_rural_provider"),
+           plotYearlyData(paste0("table_",course,"_provider_urban_rural"), "Type", "Providers %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    assign(paste0("graph_",course,"_provider_urban_rural_students"),
+           plotYearlyData(paste0("table_",course,"_provider_urban_rural"), "Type", "Students %", items, year_range, subject_name),
+           envir = .GlobalEnv)
+    
+    message(paste(course, "Coastal"))
+    
+    # Coastal
+    items <- table_GCSE_provider_coastal %>% filter(Type != "Totals") %$% Type
+    assign(paste0("graph_",course,"_provider_coastal_provider"),
+           plotYearlyData(paste0("table_",course,"_provider_coastal"), "Type", "Providers %", items, year_range, subject_name))
+    assign(paste0("graph_",course,"_provider_coastal_students"),
+           plotYearlyData(paste0("table_",course,"_provider_coastal"), "Type", "Students %", items, year_range, subject_name))
+    
+    message(paste(course, "LA"))
+    
+    # Local Education Authority
+    items <- get(paste0("table_",course,"_provider_lea")) %>% 
+      filter(Type != "Totals") %>% 
+      arrange(desc(`Students %`)) %>% 
+      top_n(20) %$% Type
+    assign(paste0("graph_",course,"_provider_lea_provider"),
+           plotYearlyData(paste0("table_",course,"_provider_lea"), "Type", "Providers %", items, year_range, subject_name))
+    assign(paste0("graph_",course,"_provider_lea_students"),
+           plotYearlyData(paste0("table_",course,"_provider_lea"), "Type", "Students %", items, year_range, subject_name))
+    
+    message(paste(course, "Region"))
+    
+    # Region
+    items <- get(paste0("table_",course,"_provider_region")) %>% filter(Type != "Totals") %$% Type
+    assign(paste0("graph_",course,"_provider_region_provider"),
+           plotYearlyData(paste0("table_",course,"_provider_region"), "Type", "Providers %", items, year_range, subject_name))
+    assign(paste0("graph_",course,"_provider_region_students"),
+           plotYearlyData(paste0("table_",course,"_provider_region"), "Type", "Students %", items, year_range, subject_name))
+    
+    # mixed schools with no provision
+    items <- get(paste0("table_",course,"_provider_mixed_no_female")) %>% filter(Type != "Totals") %$% Type
+    assign(paste0("graph_",course,"_provider_mixed_no_female"),
+         plotYearlyData(paste0("table_",course,"_provider_mixed_no_female"), "Type", "Percentage of providers", items, year_range, subject_name))
+    
+    # best female provision lea
+    items <- get(paste0("table_",course,"_provider_lea_female")) %>% 
+                filter(Name != "TOTAL") %>% 
+                arrange(desc(as.numeric(`% of subject students`))) %>%
+                slice(c(1:10)) %$% 
+                Name
+    assign(paste0("graph_",course,"_provider_lea_top_female"),
+         plotYearlyData(paste0("table_",course,"_provider_lea_female"), "Name", "% of subject students", items, year_range, subject_name))
+
+    # best female provision region
+    items <- get(paste0("table_",course,"_provider_region_female")) %>% filter(Name != "TOTAL") %$% Name
+    assign(paste0("graph_",course,"_provider_region_top_female"),
+         plotYearlyData(paste0("table_",course,"_provider_region_female"), "Name", "% of subject students", items, year_range, subject_name))
+  }
+  
+  # mixed versus boys and girls
+  
+  # Pupil premium 5 years vs ICT
+  
+  # find providers that have dropped Computer science
+
+```

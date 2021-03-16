@@ -1,0 +1,183 @@
+```{r Load_table_provider, message=FALSE, echo=FALSE}
+
+# for each year get tables for providers by
+# ... mixedgender, academies, schGender, selective, selGender, UrbanRuralCombine, UrbanRuralALL, Coastal, chains
+
+# for(sub in comparison_subjects){
+for(ks in c("GCSE", "Alevel")){
+	for(yr in year_range){
+	  if(yr == year){
+		yr <- "_Current"
+		new_year <- ""
+	  }else{
+		new_year <- paste0("_",yr)        
+		yr <- paste0("_",yr)
+	  }
+	  
+	  message("providers", paste(ks, yr))
+	  message(paste0("Spread_",ks,yr))
+
+	  #########
+	  ### create provider tables
+	  #########
+	  assign(paste0("table_",ks,"_provider_all",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "all", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_mixed",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "mixedgender", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_type",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "type", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_trust",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "trust", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_gender",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "schGender", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_selective",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "selective", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_selective_gender",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "selGender", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_urban_rural",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "UrbanRuralCombine", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_urban_rural_All",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "UrbanRuralALL", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_coastal",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "Coastal", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_lea",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "lea", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_region",new_year),
+			 OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, "region", grades = TRUE))
+	  assign(paste0("table_",ks,"_provider_percentage",new_year),
+			 Output_access_to_subjects(get(paste0("Spread_",ks,yr))))
+
+    # % of mixed schools with no girls
+    mxdGender <- OutputSubectStudentSchoolsByCriteria(get(paste0("Spread_",ks,yr)), subject_code, type="mixedgender")
+
+	  # message(dput(mxdGender))
+
+    mxdGenderTotal <- mxdGender %>% filter(Gender == "Mixed") %>%
+                                    summarise(Gender = "", Type = "Totals",
+                                              `Total CS Providers` = sum(`Total CS Providers`),
+                                              `Female CS students` = sum(`Female CS students`),
+                                              `Male CS students` = sum(`Male CS students`),
+                                              `Providers with no females` = sum(`Providers with no females`),
+                                              `Percentage of providers` = printper0(`Providers with no females` / `Total CS Providers`, d=1))
+
+     assign(paste0("table_",ks,"_provider_mixed_no_female",new_year),
+			    rbind(mxdGender %>% filter(Gender == "Mixed"), mxdGenderTotal))
+
+     # IGCSE stats
+     assign(paste0("table_",ks,"_IGCSE",new_year),
+            Output_IGCSE_providers(get(paste0("Spread_",ks,yr))))
+     
+     if(ks == "GCSE"){
+       level <- c("310", "391")
+     }
+     if(ks == "Alevel"){
+       level <- c("111")
+     }
+     
+    message(yr,  "matching provider LEA female provision")
+    # % of LEA who are female:
+    LAfemaleStats <- PrepareResolutionWhatData(get(paste0("Students_",ks,yr)), get(paste0("Results_",ks,yr)),
+                                               "LA..code.", "GENDER", c(subject_code_char), level, dir=basefolder)
+    
+    LAfemaleSchStats <- returnSchoolsForResolution(get(paste0("Students_",ks,yr)), get(paste0("Results_",ks,yr)), 
+                                                   "LA..code.", "GENDER", "\"F\"", c(subject_code_char), level, FALSE, dir=basefolder)
+
+    LAGenderTable <- LAfemaleStats %>%
+      group_by(`LA (name)`) %>%
+      filter(GENDER == "F") %>%
+      mutate(genderPer = printper0(Total / resoTotal, d=1)) %>%
+      arrange(desc(subTotalWhatPercentage)) %>%
+      select(`LA (name)`, resoTotal, Total, genderPer, subTotal, subStudents, subTotalWhatPercentage)
+
+    names(LAGenderTable) <- c("Local Authority", "Total students", "Female students", 
+                              "% of total students", "Total subject students", "Female subject students", 
+                              "% of subject students")
+    
+    temp <- left_join(LAfemaleSchStats, LAGenderTable, by=c("Name"="Local Authority"))
+    assign(paste0("table_",ks,"_provider_lea_female",new_year), 
+			    RSanonymiseTable(temp, "ten", "localauthority", size=NULL, number=NULL))
+
+    
+    message(yr, "matching provider Region female provision")
+    # % of LEA who are female:
+    RegionfemaleStats <- PrepareResolutionWhatData(get(paste0("Students_",ks,yr)), get(paste0("Results_",ks,yr)),
+                                               "Region", "GENDER", subject_code_char, level, dir=basefolder)
+    RegionfemaleSchStats <- returnSchoolsForResolution(get(paste0("Students_",ks,yr)), get(paste0("Results_",ks,yr)),
+                                                   "Region", "GENDER", "\"F\"", subject_code_char, level, FALSE, dir=basefolder)
+
+    RegionGenderTable <- RegionfemaleStats %>%
+      group_by(Region) %>%
+      filter(GENDER == "F") %>%
+      mutate(GenderPer = printper0(Total / resoTotal)) %>%
+      select(Region, resoTotal, Total, GenderPer, subTotal, subStudents, subTotalWhatPercentage) %>%
+      arrange(desc(subTotalWhatPercentage))
+
+    names(RegionGenderTable) <- c("Region", "Total students", "Female students",
+                                  "% of total students", "Total subject students",
+                                  "Female subject students", "% of subject students")
+
+    temp <- left_join(RegionfemaleSchStats, RegionGenderTable, by=c("Name"="Region"))
+    assign(paste0("table_",ks,"_provider_region_female",new_year),
+          RSanonymiseTable(temp, "ten", "localauthority", size=NULL, number=NULL))
+	}
+}
+
+### save the data for the website map
+
+Local_authorities <- loadLocalEducationAuthorities(dir=basefolder) %>% distinct( `LA (name)`, `GSSLACode (name)`)
+
+output_female_table <- table_GCSE_provider_lea_female %>% select(Name, `Female subject students`, `% of subject students`)
+
+output_table <- table_GCSE_provider_lea %>% 
+  mutate(`Total Students` = as.numeric())
+  rename(g= `Grade Avg Subject`) %>%
+  mutate(result = case_when(as.numeric(.$g) > 7.5 ~ "A*",
+                            as.numeric(.$g) > 7.0 ~ "A",
+                            as.numeric(.$g) > 6.5 ~ "A-",
+                            as.numeric(.$g) > 6.0 ~ "B*",
+                            as.numeric(.$g) > 5.5 ~ "B-",
+                            as.numeric(.$g) > 5.0 ~ "C",
+                            as.numeric(.$g) > 4.5 ~ "C-",
+                            as.numeric(.$g) > 4.0 ~ "D",
+                            as.numeric(.$g) > 3.5 ~ "D-",
+                            as.numeric(.$g) > 3.0 ~ "E",
+                            as.numeric(.$g) > 2.5 ~ "E-",
+                            as.numeric(.$g) > 2.0 ~ "F",
+                            as.numeric(.$g) > 1.5 ~ "F-",
+                            as.numeric(.$g) > 1.0 ~ "G",
+                            as.numeric(.$g) > 0 ~ "U",
+                            TRUE ~ "X")) %>%
+  mutate(result_rank = dense_rank(desc(as.numeric(g))),
+         result_rank_max = max(result_rank),
+         provider_rank = dense_rank(desc(as.numeric(`Providers %`))),
+         provider_rank_max = max(provider_rank),
+         student_rank = dense_rank(desc(as.numeric(`Students %`))),
+         student_rank_max = max(student_rank),
+         cohort_rank = dense_rank(desc(as.numeric(`Average Cohort Size`))),
+         cohort_rank_max = max(cohort_rank)) %>% 
+  select(-`Grade Avg Sch`, -`Grade Avg Sub Students`, -g) %>%
+  rename(Name = Type)
+
+output_table <- left_join(output_table, output_female_table) %>%
+  mutate(female_rank = dense_rank(desc(as.numeric(`% of subject students`))),
+         female_rank_max = max(cohort_rank)) %>%
+  filter(Name != "Totals")
+
+names(output_table) <- c("Name", 
+                         "provider_all_num", "student_all_num", 
+                         "provider_comp_num", "provider_comp_per", 
+                         "student_comp_num", "student_comp_per",
+                         "cohort_size",
+                         "result", "result_rank","result_rank_max",
+                         "provider_rank","provider_rank_max",
+                         "student_rank", "student_rank_max", 
+                         "cohort_rank", "cohort_rank_max",
+                         "female_comp_num", "female_comp_per",
+                         "female_rank", "female_rank_max")
+
+output_table <- left_join(output_table, Local_authorities, by=c("Name" = "LA (name)")) %>% rename(lacode = `GSSLACode (name)`)
+
+write_csv(output_table, paste0(basefolder,"/outputs/web/GCSE_web.csv"))
+
+
+```

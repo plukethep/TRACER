@@ -1,0 +1,65 @@
+```{r Load_global_variables}
+
+print("loading global variables")
+
+# construct names of the current year's results and students
+Results_Alevel_Current <- get(paste0("Results_Alevel_",as.character(year)))
+Results_GCSE_Current <- get(paste0("Results_GCSE_",as.character(year)))
+Students_Alevel_Current <- get(paste0("Students_Alevel_",as.character(year)))
+Students_GCSE_Current <- get(paste0("Students_GCSE_",as.character(year)))
+Spread_Alevel_Current <- get(paste0("Spread_Alevel_",as.character(year)))
+Spread_GCSE_Current <- get(paste0("Spread_GCSE_",as.character(year)))
+
+# combine GCSE results into the A-level spread
+Spread_Alevel_Current <- left_join(Spread_Alevel_Current,
+                                   matchFieldsBetweenYears_RAM(Spread_Alevel_Current, field="X2210", new_name = "GCSE_maths", year_range))
+
+# get rid of any lower case letters for gender:
+Spread_Alevel_Current <- Spread_Alevel_Current %>% mutate(GENDER = toupper(GENDER))
+
+# give overall student numbers for later in the report
+Total_Schools_Alevel <- Spread_Alevel_Current %>% select(URN) %>% distinct() %>% filter(URN < 900000) %$% nrow(.)
+Total_Schools_GCSE <- Spread_GCSE_Current %>% select(URN) %>% distinct() %>% filter(URN < 900000) %$% nrow(.)
+ATotalCompSchools <- Spread_Alevel_Current %>% filter(URN < 900000, !is.na(!!subject_code)) %>% select(URN) %>% distinct() %$% nrow(.)
+GTotalCompSchools <- Spread_GCSE_Current %>% filter(URN < 900000, !is.na(!!subject_code)) %>% select(URN) %>% distinct() %$% nrow(.)
+
+# numbers of dud providers
+Total_X_Schools_Alevel <-Spread_Alevel_Current %>% select(URN) %>% distinct() %>% filter(URN > 900000) %$% nrow(.)
+Total_X_Schools_GCSE <-Spread_GCSE_Current %>% select(URN) %>% distinct() %>% filter(URN > 900000) %$% nrow(.)
+Total_X_Students_Alevel <-Spread_Alevel_Current %>% filter(URN > 900000) %>% select(PupilMatchingRefAnonymous) %>% distinct() %$% nrow(.)
+Total_X_Students_GCSE <-Spread_GCSE_Current %>% filter(URN > 900000) %>% select(PupilMatchingRefAnonymous) %>% distinct() %$% nrow(.)
+
+# currently 69 providers at A-level with 900000 IDs
+# Spread_Alevel_Current %>% filter(URN > 900000) %>% group_by(URN) %>% summarise(n=n()) %>% arrange(desc(n))
+
+### Get total numbers of students
+Students_Alevel_Total <- nrow(Spread_Alevel_Current)
+Students_GCSE_Total <- nrow(Spread_GCSE_Current)
+
+### Get total numbers of subject students
+Students_Subject_Total_Alevel <- Spread_Alevel_Current %>% filter(!is.na(!!subject_code)) %$% nrow(.)
+Students_Subject_Total_GSCE <- Spread_GCSE_Current %>% filter(!is.na(!!subject_code)) %$% nrow(.)
+
+### Global pupil premium stats
+GPPGlobalPer <- Spread_GCSE_Current %>% 
+                    filter(!is.na(GENDER), !is.na(EVERFSM_6)) %>% 
+                    select(GENDER, EVERFSM_6) %>%
+                    group_by(GENDER) %>%
+                    mutate(cohort = n()) %>%
+                    group_by(GENDER,EVERFSM_6) %>% 
+                    summarise(n=n(), per = 100 * (n/max(cohort)), cohort = max(cohort))
+
+APPGlobalPer <- Spread_Alevel_Current %>% 
+                    filter(!is.na(GENDER), !is.na(EVERFSM_6)) %>% 
+                    select(GENDER, EVERFSM_6) %>%
+                    group_by(GENDER) %>%
+                    mutate(cohort = n()) %>%
+                    group_by(GENDER,EVERFSM_6) %>% 
+                    summarise(n=n(), per = 100 * (n/max(cohort)), cohort = max(cohort))
+
+
+# TODO: get results for ICT / Physics
+# GCSE_number_of_phys <- sum(getSchoolTypeParticipation(Spread_GCSE_Current, "X1210")$SubTotalStudents, na.rm=TRUE)
+# GCSE_number_of_ict  <- sum(getSchoolTypeParticipation(Spread_GCSE_Current, "X2650")$SubTotalStudents, na.rm=TRUE)
+
+```

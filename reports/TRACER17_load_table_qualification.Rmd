@@ -1,0 +1,319 @@
+```{r Load_table_qualification, message=FALSE, debug=TRUE, echo=FALSE}
+
+  # list to store the discount code mappings
+  type_results <- data.frame()
+  total_comp_stu <- data.frame()
+  Discount_Codes <- read_csv(paste0(basefolder, "/data/qualifications/Discount Codes.csv"))
+  # Ofqual data from https://register.ofqual.gov.uk/Download
+  All_quals <- read_csv(paste0(basefolder, "/data/qualifications/Ofqual_quals.csv"))[,c(1,2,6,9,10)]
+  All_quals <- All_quals %>% mutate(`Qualification Number` = gsub("/", "", `Qualification Number`))
+  
+  # KS5 quals
+  # matching strings for names
+  # get names of subjects to be included
+  includeNames <- c("ICT", "information and communication", "information technology", "IT application skills", "information communication", 
+                "Computer", "Computing", "Digital", "Office Technology", "iMedia","Handling & Interpreting Data",
+                "D&T Sys & Control", "System & Control", "Systems & Control", "Systems and Control",
+                "Keyboarding", "Web","desktop","Networking", "Electronic Engineering", "VFX", "information and cerative technology",
+                "IT User skills", "Open Systems and Enterprise", " IT ", " IT$")
+  includeNames <- c(includeNames, "Media", "animation")
+  
+  excludeNames <- c("Fashion")
+  
+  # get QANs of all relevant courses
+  QAN_filter <- All_quals %>% 
+    filter(grepl(paste0(toupper(includeNames), collapse="|"), toupper(`Qualification Title`))) %>%
+    filter(!grepl(paste0(toupper(excludeNames), collapse="|"), toupper(`Qualification Title`))) %$% `Qualification Number`
+
+
+  # for(sub in comparison_subjects){
+  for(course in c("GCSE", "Alevel")){
+    for(yr in year_range){
+      message(paste(course, yr))
+      
+      raw_year <- yr
+      
+      if(yr == year){
+        yr <- "_Current"
+        new_year <- ""
+      }else{
+        new_year <- paste0("_",yr)        
+        yr <- paste0("_",yr)
+      }
+      
+    # yr <- 14
+    # raw_year <- 14
+    # course <- "Alevel"
+
+    # map new QANs across years
+    temp <- left_join(get(paste0("Results_",course,"_",raw_year)),
+                      All_quals[, c(1,2,3,4,5)],
+                      by=c("QAN"="Qualification Number"))    
+    
+    temp <- left_join(temp,
+                      get(paste0("Students_",course,"_",raw_year)) %>%
+                        select(PupilMatchingRefAnonymous, GENDER, EthMin, EVERFSM_6) %>% mutate(GENDER = toupper(GENDER)))
+  
+    names(temp) <- c("PupilMatchingRefAnonymous", "URN", "MAPPING", "QAN", 
+                     "POINTS", "SUBLEVNO", "QualName",
+                     "QANLevel", "QANType", "QANCredits", "GENDER", "EthMin", "EVERFSM_6")
+
+   # checks for correct subjects
+   # setdiff(temp$QAN,All_quals$`Qualification Number`)
+   #  Q <- c("IGCSE001", "IGCSEX09", "IGCSEX03", "IGCSEX01", "IGCSEX07", "IGCSEX04", "IGCSEX08", "#",        "IGCSEX12", "IGCSE005", "1003559x")
+   # df <- temp %>% filter(QAN %in% KS5_QANs) %>% group_by(QualName) %>% summarise(n=n()) %>% arrange(desc(n))
+   # stuff <- temp %>% filter(QAN %in% KS5_QANs) %>% group_by(QualName) %>% summarise(n=n())
+
+   # df <- temp %>% distinct(QualName, QANLevel, QANType) %>% filter(grepl("Game", QualName))
+   # unique(temp$QualName)
+
+   # "Creative iMedia"
+   # sum(df$n)
+
+    message("on QANS")
+    
+    df <- temp %>% 
+      group_by(QAN, QualName, QANLevel, QANType, GENDER, EthMin, EVERFSM_6) %>% 
+      filter(QAN %in% QAN_filter) %>% 
+      summarise(n=n()) %>% 
+      ungroup()
+    
+    message("student nums")
+    # get unique student Ref # for students taking any digital qual
+    student_nums <- temp  %>% mutate(total_stu = length(unique(PupilMatchingRefAnonymous))) %>%
+      ungroup() %>%
+      group_by(GENDER) %>%
+      mutate(total_gender = length(unique(PupilMatchingRefAnonymous))) %>%
+      filter(QAN %in% QAN_filter) %>%
+      summarise(total_stu=max(total_stu),
+                total_gender = max(total_gender),
+                total_qual = length(unique(PupilMatchingRefAnonymous))) %>%
+      ungroup()
+
+    message("complete")
+
+    df$year <- raw_year
+    df$course <- course
+    type_results <- bind_rows(type_results, df)
+    
+    student_nums$year <- raw_year
+    student_nums$course <- course
+    total_comp_stu <- bind_rows(total_comp_stu, student_nums)
+    
+    }
+  }
+
+  # get top results
+  df_All <- type_results %>% 
+    group_by(course, year, QAN, QualName, QANLevel, QANType) %>% 
+    summarise(n= sum(n))
+  
+  df_Gender <- type_results %>% 
+    group_by(course, year, QAN, QualName, QANLevel, QANType, GENDER) %>% 
+    summarise(n = sum(n)) %>% 
+    spread(GENDER, n)
+  
+  df_Totals <- df_Gender %>% ungroup() %>%
+    group_by(course, year) %>%
+    summarise(M = as.character(sum(as.numeric(M), na.rm = TRUE)),
+              `F` = as.character(sum(as.numeric(`F`), na.rm = TRUE)),
+              n = as.character(as.numeric(M) + as.numeric(`F`)),
+              `f%` = as.character(ifelse(`F` == "X", "X", printper0(as.numeric(`F`)/as.numeric(n),1))),
+              `m%` = as.character(ifelse(`M` == "X", "X", printper0(as.numeric(`M`)/as.numeric(n),1))),
+              QualName = "Totals")
+
+  # anonymise the gender stats
+  df_Gender <- df_Gender %>% ungroup() %>%
+    mutate(`F` = ifelse(`F` <= 5, "X", as.character(round_any(`F`, 5))),
+           `M` = ifelse(`M` <= 5, "X", as.character(round_any(`M`, 5))),
+           n = as.character(as.numeric(M) + as.numeric(`F`)),
+           `f%` = ifelse(`F` == "X", "X", printper0(as.numeric(`F`)/as.numeric(n),1)),
+           `m%` = ifelse(`M` == "X", "X", printper0(as.numeric(`M`)/as.numeric(n),1))) %>%
+    select(course,year, QAN, `F`, M, `f%`, `m%`)
+
+
+  df_All <- df_All %>% ungroup() %>%
+    select(course, year, QAN, QualName, QANLevel, QANType, n) %>% 
+    mutate(`n` = ifelse(`n` <= 5, "X", as.character(round_any(`n`, 5))))
+  
+  df_All <- left_join(df_All, df_Gender, by=c("course","year","QAN"))
+  df_All <- bind_rows(df_All, df_Totals)
+  
+  names(df_All) <- c("course", "year", "QAN", "Name", "Level", "Type", "n", "f", "m", "f%", "m%")
+  
+  # df_All %>% filter(course == "GCSE")
+```
+
+```{r Load_table_qualification_maps, message=FALSE, debug=TRUE, echo=FALSE}
+
+# load the number of computing qualifications for each region
+  total_comp_maps <- data.frame()
+  LEAs <- loadSchoolRegions(dir=basefolder)
+
+  for(course in c("GCSE", "Alevel")){
+    for(yr in year_range){
+      print(paste(course, yr))
+      
+      raw_year <- yr
+      
+      if(yr == year){
+        yr <- "_Current"
+        new_year <- ""
+      }else{
+        new_year <- paste0("_",yr)        
+        yr <- paste0("_",yr)
+      }
+   
+      message(yr, " ", course, " all computing maps")
+      
+      # combine students and results to emulate spread
+      df <- left_join(get(paste0("Students_", course, yr)) %>% select(PupilMatchingRefAnonymous, GENDER),
+                get(paste0("Results_", course, yr)) %>% select(QAN, PupilMatchingRefAnonymous, POINTS, URN),
+                by=c("PupilMatchingRefAnonymous"))
+      
+      df_focus <- df %>% distinct(PupilMatchingRefAnonymous, URN, QAN) %>% mutate(focus = ifelse(QAN %in% QAN_filter,1,NA))
+      
+      df <- left_join(df_focus, LEAs, by="URN")
+
+      # run code for the LEAs
+      thing <- sym("LA..code.")
+      
+      df_total <- df %>% distinct(!!thing, URN, PupilMatchingRefAnonymous) %>% 
+        group_by(!!thing) %>% 
+        summarise(TotalSchools = length(unique(URN)),
+                  TotalStudents = length(unique(PupilMatchingRefAnonymous)))
+      
+      df_focus <- df %>% filter(!is.na(focus)) %>%
+        distinct(!!thing, URN, PupilMatchingRefAnonymous) %>% 
+        group_by(!!thing) %>% 
+        summarise(SubSchools = length(unique(URN)),
+                  SubStudents = length(unique(PupilMatchingRefAnonymous)))
+      
+      df_LEA <- left_join(df_total, df_focus) %>% 
+                            mutate(per_students = printper0(SubStudents/TotalStudents),
+                                   per_providers = printper0(SubSchools/TotalSchools))
+      
+      names(df_LEA) <- c("Name", "Total providers", "Total students", "Subject schools", "Subject students", "% students", "% providers")
+      
+      # run code for the regions
+      thing <- sym("Region")
+      
+      df_total <- df %>% distinct(!!thing, URN, PupilMatchingRefAnonymous) %>% 
+        group_by(!!thing) %>% 
+        summarise(TotalSchools = length(unique(URN)),
+                  TotalStudents = length(unique(PupilMatchingRefAnonymous)))
+      
+      df_focus <- df %>% filter(!is.na(focus)) %>%
+        distinct(!!thing, URN, PupilMatchingRefAnonymous) %>% 
+        group_by(!!thing) %>% 
+        summarise(SubSchools = length(unique(URN)),
+                  SubStudents = length(unique(PupilMatchingRefAnonymous)))
+      
+      df_Region <- left_join(df_total, df_focus) %>% 
+        mutate(per_students = printper0(SubStudents/TotalStudents),
+               per_providers = printper0(SubSchools/TotalSchools)) 
+      
+      names(df_Region) <- c("Name", "Total providers", "Total students", "Subject schools", "Subject students", "% students", "% providers")
+      
+      df_Region$year <- raw_year
+      df_Region$course <- course
+      df_Region$type <- "Region"
+      
+      df_LEA$year <- raw_year
+      df_LEA$course <- course
+      df_LEA$type <- "LEA"
+      
+      total_comp_maps <- bind_rows(total_comp_maps, df_Region)
+      total_comp_maps <- bind_rows(total_comp_maps, df_LEA)
+      }
+  }
+
+```
+
+<!-- if(!exists("LAmap")){ -->
+<!--   LAmap <- loadMap("LEA", dir=basefolder) -->
+<!-- } -->
+<!-- if(!exists("Regionmap")){ -->
+<!--   Regionmap <- loadMap("Region", dir=basefolder) -->
+<!-- } -->
+
+<!--   if(resolution == "region"){ -->
+<!--     region_data <- getRegionCodes(region_data) -->
+<!--   } -->
+<!--   if(resolution == "lea"){ -->
+<!--     region_data <- getLocalEducationAuthorities(region_data, dir=basefolder) -->
+<!--   } -->
+
+<!--   #message("1", nrow(region_data)) -->
+
+<!--   #if specific regions are being mapped, e.g. to focus on london -->
+<!--   if(!is.null(regions)){ -->
+<!--     region_data <- region_data %>% filter(Code %in% regions) -->
+<!--     map <- map %>% filter(id %in% regions) -->
+<!--   } -->
+
+<!--   #message("2", nrow(region_data)) -->
+
+<!--   region_data <- region_data[region_data[,c(1)] != "Totals",] -->
+<!--   region_data <- region_data %>% filter(!is.na(Region)) -->
+
+<!--   #merge LA data into the map -->
+<!--   temp_map <- left_join(map %>% mutate(id = as.character(id)), -->
+<!--                         region_data %>% mutate(Code = as.character(Code)), -->
+<!--                         by=c("id"="Code")) -->
+
+<!--   #check that all regions have a value to plot -->
+<!--   temp <- distinct(temp_map, id, `Subject Students`) -->
+
+<!--   #check that there is data for each LA. The map matches the data -->
+<!--   mapIds <- unique(temp_map$id) -->
+<!--   subIds <- unique(region_data$Code) -->
+
+<!--   if(length(subIds) != length(mapIds)) -->
+<!--   { -->
+<!--     warning(paste("ERROR in LA ID match:", length(subIds) , " vs ", -->
+<!--                   length(mapIds), " = {", setdiff(mapIds,subIds), "}")) -->
+<!--   } -->
+
+<!--   # message("5", nrow(temp_map)) -->
+
+<!--   #arrange the pieces and order so regions draw correctly -->
+<!--   temp_map <- temp_map %>% arrange(piece, order) -->
+
+<!--   ###### TODO -->
+<!--   ###ANONYMISE RESULTS WITH LESS THAN 6 per region? -->
+<!--   ###### -->
+
+<!--   # check that numbers match those expected: -->
+<!--   # temp <- temp_map %>% group_by(id) %>% distinct(`Subject\nStudents`) %>% select(`Subject\nStudents`) -->
+<!--   # sum(temp$`Subject\nStudents`, na.rm = TRUE) -->
+
+<!--   #deal with the holes in the LEA maps, print areas with holes first -->
+<!--   # the craziness explained here: -->
+<!--   #http://stackoverflow.com/questions/21748852/choropleth-map-in-ggplot-with-polygons-that-have-holes -->
+<!--   if(type == "provider"){ -->
+<!--     if(nrow(temp[is.na(temp$`Subject Students`),]) > 0) -->
+<!--     { -->
+<!--       warning(paste(" ERROR map data, missing figures for ", -->
+<!--                     temp[is.na(temp$`Subject Students`),]$id)) -->
+<!--     } -->
+
+<!--     total <- sum(region_data$`Subject Providers`, na.rm=TRUE) -->
+<!--     p <- ggplot(temp_map, aes(x=long, y=lat, group=group)) + -->
+<!--       geom_polygon(data=temp_map[temp_map$id %in% -->
+<!--                                    temp_map[temp_map$hole,]$id,], -->
+<!--                    aes(fill=`Providers %`))+ -->
+<!--       geom_polygon(data=temp_map[!temp_map$id %in% -->
+<!--                                    temp_map[temp_map$hole,]$id,], -->
+<!--                    aes(fill=`Providers %`)) -->
+
+
+
+<!--   plotResultsOnHeatMap(LAmap, lea_table, -->
+<!--                             "lea", NULL, "", focus)) -->
+
+<!--   # assign(paste0("map_heat_",course,"_",focus,"_lea_london"), -->
+<!--   #      plotResultsOnHeatMap(LAmap, lea_table, -->
+<!--   #                           "lea", loadLondonLEAs(), paste(subject_name, focus, "% - London"), focus)) -->
+
+            

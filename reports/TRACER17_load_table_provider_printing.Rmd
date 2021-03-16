@@ -1,0 +1,232 @@
+```{r Load_table_Provider_Printing}
+# create latex tables using xtables
+  ##### GCSE  
+  out_table_GCSE_provider_type <- xtable(table_GCSE_provider_type %>% 
+                                           filter(`Subject Students` != 0),
+                                         caption=paste0("20", year, " GCSE ", subject_name," by type of provider"), 
+                                         align = autosizeColumns(table_GCSE_provider_type, firstfields= c(1.4), page_width=5.3), 
+                                         digits=autodecimalColumns(table_GCSE_provider_type, firstfields= c(0)))
+  
+  out_table_GCSE_provider_trust <- xtable(table_GCSE_provider_trust %>% slice(c(1:20, nrow(.))) ,
+                                          caption=paste0("20", year, " GCSE ", subject_name, " by trust"), 
+                                          align = autosizeColumns(table_GCSE_provider_trust, firstfields= c(1.6), page_width=5.2), 
+                                          digits=autodecimalColumns(table_GCSE_provider_trust, firstfields= c(0)))
+  
+  out_table_GCSE_provider_mixed <- xtable(table_GCSE_provider_mixed %>% filter(Gender == "Mixed"),
+                                          caption=paste0("20", year, " GCSE ", subject_name," by mixed provider female provision"), 
+                                          align = autosizeColumns(table_GCSE_provider_mixed, firstfields= c(0.5,1.0), page_width=5.2), 
+                                          digits=autodecimalColumns(table_GCSE_provider_mixed, firstfields= c(0,0)))
+  
+  out_table_GCSE_provider_gender <- xtable(table_GCSE_provider_gender,
+                                           caption=paste0("20", year, " GCSE ", subject_name," by gender group of provider"), 
+                                           align = autosizeColumns(table_GCSE_provider_gender, firstfields= c(0.5), page_width=5.2), 
+                                           digits=autodecimalColumns(table_GCSE_provider_gender, firstfields= c(0)))
+  
+  out_table_GCSE_provider_selective <- xtable(table_GCSE_provider_selective,
+                                              caption=paste0("20", year, " GCSE ", subject_name," by selective and independent"), 
+                                              align = autosizeColumns(table_GCSE_provider_selective, firstfields= c(1), page_width=5.2), 
+                                              digits=autodecimalColumns(table_GCSE_provider_selective, firstfields= c(0)))
+  
+  out_table_GCSE_provider_selective_gender <- xtable(table_GCSE_provider_selective_gender,
+                                                     caption=paste0("20", year, " GCSE ", subject_name," by gender matched with selective and independent"), 
+                                                     align = autosizeColumns(table_GCSE_provider_selective_gender, firstfields= c(0.4,1.0), page_width=5.2), 
+                                                     digits=autodecimalColumns(table_GCSE_provider_selective_gender, firstfields= c(0,0)))
+  
+  out_table_GCSE_provider_urban_rural <- xtable(table_GCSE_provider_urban_rural,
+                                                caption=paste0("20", year, " GCSE ", subject_name," by urban and rural characteristic"), 
+                                                align = autosizeColumns(table_GCSE_provider_urban_rural, firstfields= c(1.2), page_width=5.2), 
+                                                digits=autodecimalColumns(table_GCSE_provider_urban_rural, firstfields= c(0)))
+  
+  out_table_GCSE_provider_urban_rural_all <- xtable(table_GCSE_provider_urban_rural_All,
+                                                    caption=paste0("20", year, " GCSE ", subject_name," by urban and rural characteristic, all categories"), 
+                                                    align = autosizeColumns(table_GCSE_provider_urban_rural_All, firstfields= c(1.2), page_width=5.2), 
+                                                    digits=autodecimalColumns(table_GCSE_provider_urban_rural_All, firstfields= c(0)))
+  
+  out_table_GCSE_provider_coastal <- xtable(table_GCSE_provider_coastal,
+                                            caption=paste0("20", year, " GCSE ", subject_name," by coastal/inland characteristic"),
+                                            align = autosizeColumns(table_GCSE_provider_coastal, firstfields= c(0.5), page_width=5.2), 
+                                            digits=autodecimalColumns(table_GCSE_provider_coastal, firstfields= c(0)))
+  
+  # get table with top 30 lea providers AND the total row:
+  df <- table_GCSE_provider_lea %>% 
+    arrange(desc(as.numeric(`Students %`))) %>% 
+    rename(Region = Type) %>% 
+    slice(c(1:30)) %>% 
+    mutate(`Students %` = printper(as.numeric(`Students %`)))
+  
+  df_top <- rbind(df, table_GCSE_provider_lea %>% rename(Region = Type) %>% filter(Region == "Totals"))
+  
+  # get table with bottom 30 lea providers AND the total row:
+  df <- table_GCSE_provider_lea %>%  
+    rename(Region = Type) %>% 
+    top_n(-30, as.numeric(`Students %`)) %>% 
+    arrange(desc(as.numeric(`Students %`))) %>% 
+    mutate(`Students %` = printper(as.numeric(`Students %`)))
+  
+  df_bottom <- rbind(df, table_GCSE_provider_lea %>% rename(Region = Type) %>% filter(Region == "Totals"))
+
+  out_table_GCSE_provider_lea <- xtable(df_top,
+                                        caption=paste0("20", year, " GCSE ", subject_name," uptake by local education authority. Top 30 sorted by student uptake."),
+                                        align = autosizeColumns(table_GCSE_provider_lea, firstfields= c(1.3), page_width=5.2), 
+                                        digits=autodecimalColumns(table_GCSE_provider_lea, firstfields= c(0)))
+  
+  out_table_GCSE_provider_lea_bottom <- xtable(df_bottom,
+                                        caption=paste0("20", year, " GCSE ", subject_name," uptake by local education authority. Bottom 30 sorted by student uptake."),
+                                        align = autosizeColumns(table_GCSE_provider_lea, firstfields= c(1.3), page_width=5.2), 
+                                        digits=autodecimalColumns(table_GCSE_provider_lea, firstfields= c(0)))
+  
+  out_table_GCSE_provider_region <- xtable(table_GCSE_provider_region %>% rename(Region = Type),
+                                           caption=paste0("20", year, " GCSE ", subject_name," uptake by region"),
+                                           align = autosizeColumns(table_GCSE_provider_region, firstfields= c(1.3), page_width=5.2), 
+                                           digits=autodecimalColumns(table_GCSE_provider_region, firstfields= c(0)))
+  
+  temp <- table_GCSE_provider_mixed_no_female # %>% mutate(`Percentage of providers` = as.numeric(printper(`Percentage of providers`)))
+  out_table_GCSE_provider_mixed_no_female <- xtable(temp,
+                                           caption=paste0("20", year, " GCSE ", subject_name," mixed providers with no female students"),
+                                           align = autosizeColumns(temp, firstfields= c(0.8, 1.0), page_width=5.3), 
+                                           digits=autodecimalColumns(temp, firstfields= c(0)))
+
+  temp <- table_GCSE_provider_lea_female %>% 
+    mutate(`% of subject students` = printper(`% of subject students`, d=1)) %>% 
+    filter(Name != 0)
+  
+  out_table_GCSE_provider_lea_female_top <- xtable(temp %>% slice(union(c(1:30), nrow(temp))),
+                                             caption=paste0("20", year, " GCSE ", subject_name," female provision by local authority. Top 30"),
+                                             align = autosizeColumns(table_GCSE_provider_lea_female, firstfields= c(1.3), page_width=5.2), 
+                                             digits=autodecimalColumns(table_GCSE_provider_lea_female, firstfields= c(0)))
+  
+  out_table_GCSE_provider_lea_female_bottom <- xtable(temp %>% slice(c((nrow(temp)-30):nrow(temp))),
+                                             caption=paste0("20", year, " GCSE ", subject_name," female provision by local authority. Bottom 30"),
+                                             align = autosizeColumns(table_GCSE_provider_lea_female, firstfields= c(1.2), page_width=5.2), 
+                                             digits=autodecimalColumns(table_GCSE_provider_lea_female, firstfields= c(0)))
+  
+  out_table_GCSE_provider_region_female <- xtable(table_GCSE_provider_region_female,
+                                           caption=paste0("20", year, " GCSE ", subject_name," female provision by region"),
+                                           align = autosizeColumns(table_GCSE_provider_region_female, firstfields= c(1.2), page_width=5.2), 
+                                           digits=autodecimalColumns(table_GCSE_provider_region_female, firstfields= c(0)))
+  
+  
+  out_table_GCSE_IGCSE <- xtable(table_GCSE_IGCSE %>% ungroup() %>% filter(!is.na(Type)),
+                                 caption=paste0("20", year, " IGCSE ", subject_name," provision"),
+                                 align = autosizeColumns(table_GCSE_IGCSE, firstfields= c(1), page_width=4.5), 
+                                 digits=autodecimalColumns(table_GCSE_IGCSE, firstfields= c(0)))
+ 
+  # create latex tables using xtables
+  ###########
+  #### Alevel
+  ###########
+  
+  out_table_Alevel_provider_type <- xtable(table_Alevel_provider_type %>% filter(`Subject Students` != 0),
+                                           caption=paste0("20", year, " Alevel ", subject_name," by type of provider"), 
+                                           align = autosizeColumns(table_Alevel_provider_type, firstfields= c(1.4), page_width=5.3), 
+                                           digits=autodecimalColumns(table_Alevel_provider_type, firstfields= c(0)))
+  
+  out_table_Alevel_provider_trust <- xtable(table_Alevel_provider_trust %>% slice(c(1:20, nrow(.))) ,
+                                            caption=paste0("20", year, " Alevel ", subject_name, " by trust"), 
+                                            align = autosizeColumns(table_Alevel_provider_trust %>% slice(c(1:20, nrow(.))), firstfields= c(1.5), page_width=5.2), 
+                                            digits=autodecimalColumns(table_Alevel_provider_trust %>% slice(c(1:20, nrow(.))), firstfields= c(0)))
+  
+  out_table_Alevel_provider_mixed <- xtable(table_Alevel_provider_mixed %>% filter(Gender == "Mixed"),
+                                            caption=paste0("20", year, " Alevel ", subject_name," by mixed provider female provision"), 
+                                            align = autosizeColumns(table_Alevel_provider_mixed, firstfields= c(1.0), page_width=5.2), 
+                                            digits=autodecimalColumns(table_Alevel_provider_mixed, firstfields= c(0)))
+  
+  out_table_Alevel_provider_gender <- xtable(table_Alevel_provider_gender,
+                                             caption=paste0("20", year, " Alevel ", subject_name," by gender group of provider"), 
+                                             align = autosizeColumns(table_Alevel_provider_gender, firstfields= c(0.5), page_width=5.2), 
+                                             digits=autodecimalColumns(table_Alevel_provider_gender, firstfields= c(0)))
+  
+  out_table_Alevel_provider_selective <- xtable(table_Alevel_provider_selective,
+                                                caption=paste0("20", year, " Alevel ", subject_name," by selective and independent"), 
+                                                align = autosizeColumns(table_Alevel_provider_selective, firstfields= c(1.0), page_width=5.2), 
+                                                digits=autodecimalColumns(table_Alevel_provider_selective, firstfields= c(0)))
+  
+  out_table_Alevel_provider_selective_gender <- xtable(table_Alevel_provider_selective_gender,
+                                                       caption=paste0("20", year, " Alevel ", subject_name," by gender matched with selective and independent"), 
+                                                       align = autosizeColumns(table_Alevel_provider_selective_gender, firstfields= c(0.4,1.0), page_width=5.2), 
+                                                       digits=autodecimalColumns(table_Alevel_provider_selective_gender, firstfields= c(0,0)))
+  
+  out_table_Alevel_provider_urban_rural <- xtable(table_Alevel_provider_urban_rural,
+                                                  caption=paste0("20", year, " Alevel ", subject_name," by urban and rural characteristic"), 
+                                                  align = autosizeColumns(table_Alevel_provider_urban_rural, firstfields= c(1.2), page_width=5.2), 
+                                                  digits=autodecimalColumns(table_Alevel_provider_urban_rural, firstfields= c(0)))
+  
+  out_table_Alevel_provider_urban_rural_all <- xtable(table_Alevel_provider_urban_rural_All,
+                                                      caption=paste0("20", year, " Alevel ", subject_name," by urban and rural characteristic, all categories"), 
+                                                      align = autosizeColumns(table_Alevel_provider_urban_rural, firstfields= c(1.2), page_width=5.2), 
+                                                      digits=autodecimalColumns(table_Alevel_provider_urban_rural, firstfields= c(0)))
+  
+  out_table_Alevel_provider_coastal <- xtable(table_Alevel_provider_coastal,
+                                              caption=paste0("20", year, " Alevel ", subject_name," by coastal/inland characteristic"),
+                                              align = autosizeColumns(table_Alevel_provider_coastal, firstfields= c(0.5), page_width=5.2), 
+                                              digits=autodecimalColumns(table_Alevel_provider_coastal, firstfields= c(0)))
+  
+  temp <- table_Alevel_provider_mixed_no_female %>% mutate(`Female CS students` = ifelse(Type == "Special", "X", `Female CS students`),
+                                                   `Male CS students` = ifelse(Type == "Special", "X", `Female CS students`))
+  
+  out_table_Alevel_provider_mixed_no_female <- xtable(temp,
+                                           caption=paste0("20", year, " Alevel ", subject_name," mixed providers with no female students"),
+                                           align = autosizeColumns(temp, firstfields= c(0.8, 1.0), page_width=5.2), 
+                                           digits=autodecimalColumns(temp, firstfields= c(0)))
+  
+  
+  temp <- table_Alevel_provider_lea_female %>% 
+    mutate(`% of subject students` = printper(`% of subject students`, d=1)) %>% 
+    filter(Name != 0, as.numeric(`% of subject students`) > 0 & `% of subject students` != "X")
+  
+  out_table_Alevel_provider_lea_female_top <- xtable(temp,
+                                           caption=paste0("20", year, " Alevel ", subject_name," female provision by local authority. Top 30"),
+                                           align = autosizeColumns(table_Alevel_provider_lea_female, firstfields= c(1.2), page_width=5.2), 
+                                           digits=autodecimalColumns(table_Alevel_provider_lea_female, firstfields= c(0)))
+  
+  #TODO: fix this when there are moe A-level providers
+  out_table_Alevel_provider_lea_female_bottom <- xtable(table_Alevel_provider_lea_female,
+                                           caption=paste0("20", year, " Alevel ", subject_name," female provision by local authority"),
+                                           align = autosizeColumns(table_Alevel_provider_lea_female, firstfields= c(1.2), page_width=5.2), 
+                                           digits=autodecimalColumns(table_Alevel_provider_lea_female, firstfields= c(0)))
+  
+  
+  out_table_Alevel_provider_region_female <- xtable(table_Alevel_provider_region_female,
+                                           caption=paste0("20", year, " Alevel ", subject_name," female provision by region sorted by student uptake"),
+                                           align = autosizeColumns(table_Alevel_provider_region_female, firstfields= c(1.2), page_width=5.2), 
+                                           digits=autodecimalColumns(table_Alevel_provider_region_female, firstfields= c(0)))
+
+  
+  # get table with top 30 lea providers AND the total row:
+  df <- table_Alevel_provider_lea %>% 
+    arrange(desc(as.numeric(`Students %`))) %>% 
+    rename(Region = Type) %>% 
+    slice(c(1:30)) %>% 
+    mutate(`Students %` = printper(as.numeric(`Students %`)))
+  df_top <- rbind(df, table_Alevel_provider_lea %>% rename(Region = Type) %>% filter(Region == "Totals"))
+  
+  # redact Salford results
+  df_top <- df_top %>% mutate(`Grade Avg Sub Students` = ifelse(as.numeric(`Grade Avg Sub Students`) < 100, "X", `Grade Avg Sub Students`), 
+                    `Grade Avg Subject` = ifelse(as.numeric(`Grade Avg Subject`) < 100, "X", `Grade Avg Subject`))
+
+  # get table with bottom 30 lea providers AND the total row:
+  df <- table_Alevel_provider_lea %>%  
+    rename(Region = Type) %>% 
+    top_n(-30, as.numeric(`Students %`)) %>% 
+    arrange(desc(as.numeric(`Students %`)))
+  
+  df_bottom <- rbind(df, table_Alevel_provider_lea %>% rename(Region = Type) %>% filter(Region == "Totals"))
+  
+  out_table_Alevel_provider_lea <- xtable(df_top,
+                                          caption=paste0("20", year, " Alevel ", subject_name," by local education authority. Top 30 sorted by student uptake"),
+                                          align = autosizeColumns(table_Alevel_provider_lea, firstfields= c(1.3), page_width=5.2), 
+                                          digits=autodecimalColumns(table_Alevel_provider_lea, firstfields= c(0)))
+  
+  out_table_Alevel_provider_lea_bottom <- xtable(df_bottom,
+                                          caption=paste0("20", year, " Alevel ", subject_name," by local education authority. Bottom 30 sorted by student uptake"),
+                                          align = autosizeColumns(table_Alevel_provider_lea, firstfields= c(1.3), page_width=5.2), 
+                                          digits=autodecimalColumns(table_Alevel_provider_lea, firstfields= c(0)))
+  
+
+  out_table_Alevel_provider_region <- xtable(table_Alevel_provider_region %>% rename(Region = Type),
+                                             caption=paste0("20", year, " Alevel ", subject_name," by region sorted by student uptake"),
+                                             align = autosizeColumns(table_Alevel_provider_region, firstfields= c(1.3), page_width=5.2), 
+                                             digits=autodecimalColumns(table_Alevel_provider_region, firstfields= c(0)))
+  
+  
+```

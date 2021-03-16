@@ -1,0 +1,263 @@
+```{r Load_table_student_printing}
+# create latex tables using xtables
+  ##### GCSE
+
+  out_table_GCSE_student_gender <- xtable(table_GCSE_student_gender %>% 
+                                            filter(!is.na(GENDER)),
+                                          caption=paste0("20", year, " GCSE ", subject_name," student grades by gender"), 
+                                          align = autosizeColumns(table_GCSE_student_gender, firstfields= c(1.0, 0.2), page_width=4), 
+                                          digits= autodecimalColumns(table_GCSE_student_gender, 
+                                                                     firstfields= rep(length(names(table_GCSE_student_gender)))))
+  
+  out_table_GCSE_student_fsm <- xtable(table_GCSE_student_fsm %>% 
+                                         filter(!is.na(EVERFSM_6)) %>% rename(`Pupil premium` = EVERFSM_6),
+                                       caption=paste0("20", year, " GCSE ", subject_name," student grades by pupil premium"), 
+                                       align = autosizeColumns(table_GCSE_student_fsm, firstfields= c(1.0, 0.2), page_width=4), 
+                                       digits= autodecimalColumns(table_GCSE_student_fsm, 
+                                                                  firstfields= rep(length(names(table_GCSE_student_fsm)))))
+  
+  out_table_GCSE_student_ethmaj <- xtable(table_GCSE_student_ethmaj %>% 
+                                            filter(!is.na(EthMaj)),
+                                          caption=paste0("20", year, " GCSE ", subject_name," student grades by gender"), 
+                                          align = autosizeColumns(table_GCSE_student_ethmaj, firstfields= c(1.0, 0.2), page_width=4), 
+                                          digits= autodecimalColumns(table_GCSE_student_ethmaj, 
+                                                                     firstfields= rep(length(names(table_GCSE_student_ethmaj)))))
+  
+  out_table_GCSE_student_eal <- xtable(table_GCSE_student_eal %>% 
+                                         filter(!is.na(EAL)),
+                                       caption=paste0("20", year, " GCSE ", subject_name," student grades by EAL"), 
+                                       align = autosizeColumns(table_GCSE_student_eal, firstfields= c(1.0, 0.2), page_width=4), 
+                                       digits= autodecimalColumns(table_GCSE_student_eal, 
+                                                                  firstfields= rep(length(names(table_GCSE_student_eal)))))
+  
+  out_table_GCSE_student_sen <- xtable(table_GCSE_student_sen %>% 
+                                         filter(!is.na(SEN)),
+                                       caption=paste0("20", year, " GCSE ", subject_name," student grades by SEN"), 
+                                       align = autosizeColumns(table_GCSE_student_sen, firstfields= c(1.0, 0.2), page_width=4), 
+                                       digits=autodecimalColumns(table_GCSE_student_sen, 
+                                                                 firstfields= rep(length(names(table_GCSE_student_sen)))))
+  
+  out_table_GCSE_student_ethnicity_sub_comparison <- xtable(table_GCSE_student_ethnicity_sub_comparison,
+                                                            caption=paste0("20", year, " GCSE ", subject_name," ethnicity of subject students"), 
+                                                            align = autosizeColumns(table_GCSE_student_ethnicity_sub_comparison, 
+                                                                                    firstfields= c(0.8), page_width=5.2), 
+                                                            digits= autodecimalColumns(table_GCSE_student_ethnicity_sub_comparison, 
+                                                                                       firstfields=
+                                                                                         rep(length(names(table_GCSE_student_ethnicity_sub_comparison)))))
+  # %of students able to sit computing
+  
+  temp <- table_GCSE_provider_percentage %>% select(-`Subject code`) %>%
+                                                 top_n(30,`Students sitting subject`) %>% 
+                                                 arrange(desc(`Students sitting subject`))
+  
+  
+  out_table_GCSE_provider_percentage <- xtable(temp,
+                                               caption=paste0("20", year, " GCSE subject offering"), 
+                                               align = autosizeColumns(temp, 
+                                                                       firstfields= c(1.2), page_width=5.2), 
+                                               digits= autodecimalColumns(temp, 
+                                                                          firstfields=
+                                                                            rep(length(names(temp)))))
+  
+  # % of students who are female
+  # temp <- table_GCSE_student_country_female_per_LA..code.
+
+  # temp <- table_GCSE_student_country_female_per_LA..code. %>% select(`LA (name)`, resoTotal, subTotalWhatPercentage)
+  # 
+  # out_table_GCSE_student_female_per_LA <- xtable(temp,
+  #                                              caption=paste0("20", year, " GCSE subject offering"), 
+  #                                              align = autosizeColumns(temp, 
+  #                                                                      firstfields= c(0.8), page_width=5.2), 
+  #                                              digits= autodecimalColumns(temp, 
+  #                                                                         firstfields=
+  #                                                                           rep(length(names(temp)))))
+  
+
+  # SEN students
+  temp <- table_GCSE_student_taking_sen %>% 
+    filter(Subject %in% c(map_chr(c(comparison_subjects, "All"), function(x) quo_name(x)))) %>%
+                    select(what, SubjectName, mean) %>% 
+                    spread(SubjectName, mean) %>%
+   mutate(what = ifelse(what == "N", "None",
+                        ifelse(what == "A", "School action",
+                               ifelse(what == "P", "School action plus", 
+                                      ifelse(what == "S", "Statement", 
+                                             ifelse(what == "E", "EHC plan", 
+                                                    ifelse(what == "K", "SEN support","NA"))))))) %>%
+   rename(`SEN category` = what)  %>% arrange(desc(ALL))
+ 
+  out_table_GCSE_student_sen_uptake <- xtable(temp,
+                                              caption=paste0("20", year, " GCSE SEN uptake"), 
+                                              align = autosizeColumns(temp, 
+                                              firstfields= c(1.2), page_width=3.5), 
+                                              digits= autodecimalColumns(temp, 
+                                              firstfields=rep(length(names(temp)))))
+
+  # EAL students
+ temp <- table_GCSE_student_taking_eal %>% 
+    filter(Subject %in% c(map_chr(c(comparison_subjects, "All"), function(x) quo_name(x)))) %>%
+                    select(what, SubjectName, mean) %>% 
+                    spread(SubjectName, mean) %>%
+   mutate(what = ifelse(what == 1, "English",
+                        ifelse(what == 2, "English Additional Language",
+                               ifelse(what == 3, "Unclassified", "NA")))) %>%
+   rename(`First language` = what)  %>% arrange(desc(ALL))
+ 
+  out_table_GCSE_student_eal_uptake <- xtable(temp,
+                                              caption=paste0("20", year, " GCSE EAL uptake"), 
+                                              align = autosizeColumns(temp, 
+                                              firstfields= c(1.2), page_width=3.5), 
+                                              digits= autodecimalColumns(temp, 
+                                              firstfields=rep(length(names(temp)))))
+
+  # EBACC
+  long_ebacc <- data.frame()
+  for(y in year_range){
+      yr <- y
+      if(y == year){
+        y <- ""
+      }else{
+        y <- paste0("_",y)
+      }
+      plot_data <- get(paste0("table_GCSE_student_EBacc",y))
+      # message(plot_data)
+      # message("!")
+      long_ebacc <- rbind(long_ebacc, plot_data)
+  }
+  
+  temp <- long_ebacc %>% select(Year, Subject, total, singles_per, singles_4_per, singles_3_per, core_per)
+  names(temp) <- c("Year", "Subject", "n", "% EBacc single sciences", "% 4 single sciences", "% 3 single sciences", "% EBacc core science")
+
+  # temp <- table_GCSE_student_EBacc %>% select(Subject, total, singles_per, singles_4_per, singles_3_per, core_per)
+  # names(temp) <- c("Subject", "n", "% EBacc single sciences", "% 4 single sciences", "% 3 single sciences", "% EBacc core science")
+
+  out_table_GCSE_student_ebacc <- xtable(temp,
+                                              caption=paste0("GCSE ", subject_name," EBacc summary 20",min(year_range),"-",max(year_range)), 
+                                              align = autosizeColumns(temp, 
+                                              firstfields= c(0.8), page_width=4), 
+                                              digits= autodecimalColumns(temp, 
+                                              firstfields=rep(length(names(temp)))))
+  
+  
+  temp <- table_GCSE_student_taking_gcsemat %>% select(SubjectName, mean, sd)
+  out_table_GCSE_student_taking_gcsemat <- xtable(temp,
+                                                  caption=paste0("20", year, " GCSE average GCSE Mathematics grade"),
+                                                  align = autosizeColumns(temp, firstfields= c(1.0), page_width=3), 
+                                                  digits=autodecimalColumns(temp, firstfields= c(0,2,2)))
+  
+  temp <- table_GCSE_student_taking_ks2mat %>% select(SubjectName, mean, sd)
+  out_table_GCSE_student_taking_ks2mat <- xtable(temp,
+                                                 caption=paste0("20", year, " GCSE average KS2 Mathematics grade"),
+                                                 align = autosizeColumns(temp, firstfields= c(1.0), page_width=3), 
+                                                 digits=autodecimalColumns(temp, firstfields= c(0,2,2)))
+  
+
+  ############
+  ##### ALEVEL
+  ############
+  
+  out_table_Alevel_student_gender <- xtable(get("table_Alevel_student_gender") %>% 
+                                              filter(!is.na(GENDER)),
+                                            caption=paste0("20", year, " Alevel ", subject_name," student grades by gender"), 
+                                            align = autosizeColumns(get("table_Alevel_student_gender"), firstfields= c(1.0, 0.2), page_width=4), 
+                                            digits=autodecimalColumns(get("table_Alevel_student_gender"), 
+                                                                      firstfields= rep(length(names(get("table_Alevel_student_gender"))))))
+  
+  out_table_Alevel_student_fsm <- xtable(table_Alevel_student_fsm %>% 
+                                           filter(!is.na(EVERFSM_6)) %>% rename(`Pupil premium` = EVERFSM_6),
+                                         caption=paste0("20", year, " Alevel ", subject_name," student grades by pupil premium"), 
+                                         align = autosizeColumns(table_Alevel_student_fsm, firstfields= c(1.0, 0.2), page_width=4), 
+                                         digits=autodecimalColumns(table_Alevel_student_fsm, 
+                                                                   firstfields= rep(length(names(table_Alevel_student_fsm)))))
+  
+  out_table_Alevel_student_ethmaj <- xtable(table_Alevel_student_ethmaj %>% 
+                                              filter(!is.na(EthMaj)),
+                                            caption=paste0("20", year, " Alevel ", subject_name," student grades by gender"), 
+                                            align = autosizeColumns(table_Alevel_student_ethmaj, firstfields= c(1.0, 0.2), page_width=4), 
+                                            digits=autodecimalColumns(table_Alevel_student_ethmaj, 
+                                                                      firstfields= rep(length(names(table_Alevel_student_ethmaj)))))
+  
+  out_table_Alevel_student_eal <- xtable(table_Alevel_student_eal %>% 
+                                           filter(!is.na(EAL)),
+                                         caption=paste0("20", year, " Alevel ", subject_name," student grades by EAL"), 
+                                         align = autosizeColumns(table_Alevel_student_eal, firstfields= c(1.0, 0.2), page_width=4), 
+                                         digits=autodecimalColumns(table_Alevel_student_eal, 
+                                                                   firstfields= rep(length(names(table_Alevel_student_eal)))))
+  
+  out_table_Alevel_student_sen <- xtable(table_Alevel_student_sen %>% 
+                                           filter(!is.na(SEN)),
+                                         caption=paste0("20", year, " Alevel ", subject_name," student grades by SEN"), 
+                                         align = autosizeColumns(table_Alevel_student_sen, firstfields= c(1.0, 0.2), page_width=4), 
+                                         digits=autodecimalColumns(table_Alevel_student_sen, 
+                                                                   firstfields= rep(length(names(table_Alevel_student_sen)))))
+  
+  out_table_Alevel_student_ethnicity_sub_comparison <- xtable(table_Alevel_student_ethnicity_sub_comparison,
+                                                              caption=paste0("20", year, " A-level ", subject_name," ethnicity of subject students"), 
+                                                              align = autosizeColumns(table_Alevel_student_ethnicity_sub_comparison, 
+                                                                                      firstfields= c(0.8), page_width=3.8), 
+                                                              digits=autodecimalColumns(table_Alevel_student_ethnicity_sub_comparison, 
+                                                                                        firstfields= rep(length(names(table_Alevel_student_ethnicity_sub_comparison)))))
+   
+  
+  
+   temp <- table_Alevel_provider_percentage %>%   select(-`Subject code`) %>% 
+                                                   top_n(30,`Students sitting subject`) %>% 
+                                                   arrange(desc(`Students sitting subject`))
+  
+  
+  out_table_Alevel_provider_percentage <- xtable(temp,
+                                                 caption=paste0("20", year, " Alevel subject offering"), 
+                                                 align = autosizeColumns(temp, 
+                                                                         firstfields= c(1.2), page_width=5.2), 
+                                                 digits= autodecimalColumns(temp, 
+                                                                            firstfields=
+                                                                              rep(length(names(temp)))))
+  # SEN students
+  temp <- table_Alevel_student_taking_sen %>% 
+    filter(Subject %in% c(map_chr(c(comparison_subjects, "All"), function(x) quo_name(x)))) %>%
+                    select(what, SubjectName, mean) %>% 
+                    spread(SubjectName, mean) %>%
+    mutate(what = ifelse(what == "N", "None",
+                        ifelse(what == "A", "School action",
+                               ifelse(what == "P", "School action plus", 
+                                      ifelse(what == "S", "Statement", 
+                                             ifelse(what == "E", "EHC plan", 
+                                                    ifelse(what == "K", "SEN support","NA"))))))) %>%
+    rename(`SEN category` = what) %>% arrange(desc(ALL))
+  
+  out_table_Alevel_student_sen_uptake <- xtable(temp,
+                                              caption=paste0("20", year, " Alevel SEN uptake"), 
+                                              align = autosizeColumns(temp, 
+                                              firstfields= c(1.2), page_width=3.5), 
+                                              digits= autodecimalColumns(temp, 
+                                              firstfields=rep(length(names(temp)))))
+  # EAL students
+  temp <- table_Alevel_student_taking_eal %>% 
+    filter(Subject %in% c(map_chr(c(comparison_subjects, "All"), function(x) quo_name(x)))) %>%
+                    select(what, SubjectName, mean) %>% 
+                    spread(SubjectName, mean) %>%
+   mutate(what = ifelse(what == 1, "English",
+                        ifelse(what == 2, "English Additional Language",
+                               ifelse(what == 3, "Unclassified", "NA")))) %>%
+   rename(`First language` = what) %>% arrange(desc(ALL))
+  
+  out_table_Alevel_student_eal_uptake <- xtable(temp,
+                                              caption=paste0("20", year, " Alevel EAL uptake"), 
+                                              align = autosizeColumns(temp, 
+                                              firstfields= c(1.2), page_width=3.5), 
+                                              digits= autodecimalColumns(temp, 
+                                              firstfields=rep(length(names(temp)))))
+  
+  temp <- table_Alevel_student_taking_gcsemat %>% select(SubjectName, mean, sd)
+  out_table_Alevel_student_taking_gcsemat <- xtable(temp,
+                                                  caption=paste0("20", year, " Alevel average GCSE Mathematics grade"),
+                                                  align = autosizeColumns(temp, firstfields= c(1.0), page_width=3), 
+                                                  digits=autodecimalColumns(temp, firstfields= c(0,2,2)))
+  
+  temp <- table_Alevel_student_taking_ks2mat %>% select(SubjectName, mean, sd)
+  out_table_Alevel_student_taking_ks2mat <- xtable(temp,
+                                                 caption=paste0("20", year, " Alevel average KS2 Mathematics grade"),
+                                                 align = autosizeColumns(temp, firstfields= c(1.0), page_width=3), 
+                                                 digits=autodecimalColumns(temp, firstfields= c(0,2,2)))
+  
+```
