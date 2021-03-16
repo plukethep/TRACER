@@ -1,0 +1,11 @@
+ 
+- Please note that computer science might be referred to as CS in the following text.
+- `KS4` refers to students in secondary school, aged 14-16 years old.
+- `KS5` refers to students at college, aged 16-18 years old.
+- `GCSE` refers to the General Certificate in Secondary Education, a qualification usually sat in KS4.
+- `A-level` / `GCE A` refers to an Advanced level qualification, usually sat in the final year of KS5.
+- `AS-level` / `GCE AS` refers to an Advanced Subsidiary level qualification, often sat in the first year of KS5.
+- For columns titled `Total Schools` and `Total Students`, figures are taken from all institutions offering GCSEs or A-levels, and all students taking at least one full GCSE or A-level.
+- Where average grades are given, `Grade Avg Sch` = average grade of all students in a given provider / grouping, `Grade Avg Sub Students` = same as previous, but only for students taking `r cat(subject_name)`, `Grade Avg Subject` = average grade in `r cat(subject_name)` for all students in a given provider / grouping.
+- Any instance where `X` appears indicates that data has been redacted that would allow the recognition of 5 or fewer students. In these circumstances other data on the table is rounded to the nearest 5 to prevent the calculation of the value of X. As a result, totals may vary slightly between tables. This data has been suppressed in line with the DfE National Pupil Database User guide [@NPDUserGuide].
+

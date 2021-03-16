@@ -1,0 +1,14 @@
+
+42.9% of CS providers at GCSE have a cohort smaller than 20, this is slightly better than in 2015 (47.6%)
+ 
+The larger the school (both in terms of pupils and GCSE offerings), the more likely it is to offer computer science - the picture for computer science provision by schools (although not yet take up by students) is now broadly comparable to that for GCSE physics.  
+ 
+Cohort size for GCSE CS, where it is offered, seem to be sustainable in the majority of schools, although it is still well below that for ICT and Physics.
+ 
+Whilst only 52.5% of providers offer GCSE CS, the schools that do are typically larger schools, and thus 76.3% of students are in schools where the subject is offered: in fact more students are in schools where CS is offered than physics (although the take up of the subject is substantially lower). There has been a rapid increase in this measure over the last four years.
+ 
+86.5% of A-level CS groups have fewer than 12 students, which DfE guidance regards as being the level that is needed to make a course viable in a provider (11.7 students [@parish2017understanding]). The mean cohort size is 6.7 and the median just 5 students. With ongoing budgetary concerns in sixth form education, computer science is at risk of being financially unsustainable in the majority of providers.
+ 
+As with GCSE, larger providers are more likely to offer CS than smaller ones, but the likelihood that any provider offers the subject is much less than for physics.
+Whilst only 36% of providers offer CS at A-level, the reach of the subject (ie the proportion of students in centres where the subject is offered) is 57% - this has increased over the last four years, but it still remains substantially below Physics (96.6%)
+

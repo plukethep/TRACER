@@ -1,0 +1,7 @@
+
+There is substantial variation in GCSE CS provision between English regions, in particular London (49.2%) and the West Midlands (47.3%) see the lowest percentage of providers offering the subject, compared to 55.3% of providers in North West. Uptake ranges from 13% in the North West to 10.2% in Yorkshire and the Humber.
+ 
+A-level CS shows dramatic variation between regions: only 29.1% of Yorkshire and Humber providers are offering CS, compared to 41.3% in the neighboring North East. Uptake varies between 2.1% of students in the underserved Yorkshire and the Humber region through to 3.1% in the East Midlands. Performance is low in London, with students sitting CS being substantially less able than their peers in the same school, and underperforming compared to their other subjects
+ 
+Yorkshire and the Humber have substantially improved the offering of Computer Science at A-level over the last 4 years, although room for improvement remains.
+

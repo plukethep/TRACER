@@ -1,0 +1,12 @@
+
+52.5% of schools now offer GCSE computer science. 11.9% of students take the subject. See [Provider / cohort size](#Provider / cohort size) for more information on overall provision of GCSE CS. Independent schools are unlikely (n=225) to offer GCSE CS, although a few (n=66) offer iGCSE CS instead. Special schools and PRUs are also unlikely to offer GCSE CS. UTCs enter large proportions of their cohort for computer science, although, perhaps as a result, average grades are not particular high.
+ 
+GCSE computer science is hard - no groups of school are doing better in CS than they are overall. 
+The rapid increase seen in take up of GCSE CS in its first few years has slowed, but overall figures for 2017 still show a moderate increase on those for 2016. However, we have seen an increase in the number of providers offering the subject up by ~8% on 2016,
+ 
+Academy converters are now more likely to offer A-level computer science (47.0%) than further education and sixth form colleges (43.4%). University technical colleges show excellent take-up (52.8% of providers and 16.2% of students), but like the GCSE, this is accompanied by low grades (3.3 average grade is equivalent to a low E grade ).
+ 
+Most providers see student A-level CS grades being lower than their other subjects. The grade profile of A-level CS students is lower on average than their peers in the same institutions: this seems to be a hard subject, often taken by less able candidates. 
+ 
+Cohort sizes remain low for most providers (an average of 6.7), with further education and sixth form colleges being the only large provider type to have an average cohort size larger than the DfE's recommended class size of 11.7 [@parish2017understanding]. Whilst this raises questions about the ongoing sustainability of the subject in other provider types, year on year numbers show the major provider types are increasingly more likely to offer A-level computer science (Fig. 3).
+

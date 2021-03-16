@@ -1,0 +1,14 @@
+
+
+GCSE computer science might still be seen as somewhat elitist, given the relatively high take up in grammar schools compared to comprehensives. The gap between GCSE CS provision in selective and non-selective state schools has narrowed over the last four years. Grammar providers show substantially larger cohort sizes (31.4 students), suggesting many are choosing to enter more than one class per year. Grammar schools out-perform comprehensive and independent schools, which is unsurprising given the highly selective nature of their intake.
+ 
+Independent schools are unlikely to offer GCSE CS, and have small group sizes when they do. Whilst take up has increased, its been somewhat slower here than in other school types. This might be partially explained by some independent schools choosing to adopt the iGCSE (n=66) instead of GCSE CS (n=225), however, the number of students taking iGCSE are relatively small (813 vs 2273 for the GCSE), see the [Qualifications overview](#qualifications-overview) section for more information about the iGCSE.
+ 
+The majority of grammar schools now offer A-level CS (63.4%), compared to 37.8% of comprehensive and 23.6% of independent schools. It should be noted that uptake has increased in all provider types.
+
+
+Mixed providers offering GCSE CS are doing a much better job of engaging girls than in 2015, with 16.3% of providers without any females, compared to 26.9% in 2015
+At A-level the percentage of mixed providers without any females has risen slightly to 66.3%  from 65.3% in 2015.
+
+
+

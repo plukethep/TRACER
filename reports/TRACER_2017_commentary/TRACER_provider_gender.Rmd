@@ -1,0 +1,5 @@
+
+The majority of Mixed providers offer GCSE CS (53.6%), whilst similar numbers of Girls' (44.4%) and Boys' (46.9%) providers offer CS. Student take-up of CS is lower in girls' schools (7.5% vs 15.2% for boys). Average results in single sex schools exceed those of mixed providers, however it should be noted that single sex providers have higher performing student populations to start with, this might be the result of relatively large numbers of independent and grammar providers being single sex.
+ 
+The majority of single gender Boys providers offer A-level CS (56.3%), with Mixed (36.6%) and Female (23.3%) providers trailing substantially. Cohort sizes amongst boys only providers are larger than the other groupings and the Boys only providers command the highest average grade.
+

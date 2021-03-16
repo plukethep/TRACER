@@ -1,0 +1,8 @@
+
+GCSE CS students are more likely to take physics and chemistry, rather less likely to take history or single or double subject science.
+
+Very few students (2.2% of all CS entrants) are taking computer science as a replacement for one of the other single sciences (i.e. 3 single science staken including CS). CS is taken in addition to the three other single sciences for 33.6% of CS students, and as an addition to core science for 38.2% of the CS cohort.
+ 
+A-level CS students are likely to also take maths physics, further maths; less likely to take other popular subjects. For comparison, ICT students are more likely to take business studies, film/media and D&T product design.
+
+When reading the following graphs: the top 10 combination subjects for each focus subject are shown; a subject above the line means that students of the focus subject of the graph are more likely to take take that subject than the general population; a subject below the line means that students are less likely to take that subject than the rest of the population. 

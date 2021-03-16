@@ -1,0 +1,5 @@
+
+Urban schools are more likely to offer CS, and have slightly higher proportions studying GCSE computer science.  
+ 
+At A-level, urban providers are much more likely to offer CS than their rural counterparts, with more urban students likely to study the subject than their rural counterparts.
+

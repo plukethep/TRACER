@@ -1,0 +1,17 @@
+
+- Our findings lead us to call for an urgent inquiry into the long-term impact the removal of ICT will have on the digital education of young people. In particular, the analysis should examine if, and the extent to which, the current suite of available qualifications is truly inclusive and of benefit to all children. We believe there is a need for clarity on vocational qualifications and a need for a replacement for the ICT GCSE and A-level, or perhaps a 'single subject' computing GCSE that encompasses the CS, IT and digital literacy elements recommended by The Royal Society[@furber2014shut] and enshrined in the National Curriculum[@DfE2014NC] itself.
+
+- A related concern is class size. Given the small cohort sizes of A-level computer science providers, there is a need to review the sustainability of CS at A-level.
+
+- Continued effort is also needed to address the gender gap in computing participation. Given females are generally better represented when taking digitally 'creative' courses, compared to computer science, we call for research and practice to explore the concept of 'creative computing', in which computer science might be combined with creative work in a range of digital media. Furthermore, we found there are areas in which female uptake is good, the reasons for this engagement need to be explored, with good lessons widely shared.
+
+- Some local authorities demonstrate excellent levels of participation amongst females, the reasons for this need to be explored further.
+ 
+- The reasons for the differences in CS participation from students across social and ethnic backgrounds needs to be investigated and discussions around inclusion in computing must include factors in addition to gender.
+
+- GCSE computer science is established in schools serving 76.3% of the country, we now need to grow the numbers of students in those schools sitting the subject as it remains an exclusive subject. Most providers appear to be only offering one class of computer science provision, schools should be encouraged to enter a wider ability range of students into the subject, this will of course require that there are enough qualified teachers to deliver the subject.
+
+- SEN students are more likely to sit A-level CS than ICT, physics and most other subjects. Research is needed here into the specific functioning profiles of those classified as having special educational needs and taking computer science, their reasoning for taking the subject and their performance in CS.
+
+
+

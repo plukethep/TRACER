@@ -1,0 +1,30 @@
+
+- 52.5% of schools now offer GCSE computer science with 11.9% of students taking the subject. 76.3% of students are in schools where GCSE computer science is offered. Independent schools are unlikely to offer GCSE computer science. Special schools and pupil referral units are also unlikely to offer computer science. University technical colleges enter large proportions of their cohorts (39.5%) into GCSE computer science, however, the results are unspectacular, with students averaging a low E grade.
+ 
+- GCSE computer science is a hard subject. No groups of school are doing better in CS than they are overall. Low performance of University technical colleges might be partly explained by their entering higher proportions of their cohort, with other schools being more selective. Computer science students might be seen as academically strong: those taking computer science generally achieve more highly in their GCSEs than their peers in the same providers.  
+ 
+- The rapid increase in the first few years of GCSE computer science has slowed, but it still shows a moderate increase. The subject has a potential student reach comparable to physics, though without a comparable 'computing' qualification to match the more general 'core science'.
+ 
+- The increase in students sitting GCSE CS slowed between 2016 and 2017, whilst the percentage of providers offering the subject has increased by ~8%, percentages of students taking it hasn't kept pace, increasing only ###%. The picture at A-level is better, with a sustained increase in student numbers over the last 4 years, albeit with still very small numbers (7215 students in 2017).  However, cohort sizes remain small, with an average of 6.7 students per provider and a median of just 5. Budgetary concerns among KS5 providers mean the ongoing sustainability of A-level CS remains a concern, with 86.5% of providers below the recommended cohort size.
+
+- Girls continue to be heavily underrepresented in the study of computer science. At GCSE 20% of entries are from female students (1 in 5) and only 10% (1 in 10) at A-level, even though girls do better than boys at GCSE. Of note is that girls no longer outperform boys at the top A-level CS grades, A\* and A.
+
+- Female provision varies widely between regions, and local authorities. Only 13 GCSE CS LAs that have more than a third of their students being female. London does particularly well at engaging females with 26.7% of GCSE CS and 13.2% of A-level CS students being female.
+
+- Compared to ICT, a lower proportion of pupil premium students study GCSE and A-level computer science, which means that computing is becoming more exclusive. A much lower percentage of pupil premium students achieve grade A or A\* (9.6% vs. 21.9%). This gap is narrower at A-level (10.3% vs. 17%).
+
+- Student participation in GCSE and A-level CS is patterned by ethnicity, with Black students proportionally underrepresented and Chinese students proportionally overrepresented. For GCSE, the proportion of Black students who studied ICT and CS is similar at around 10%, but drastically different for Chinese students, with around 12% in ICT, compared to around 26% for CS.
+
+- Students with SEN support have a higher tendency to study A-level CS, at 6.1% of the cohort, despite representing just 3.7% of all students. The percentage is more proportionally representative in subjects such as physics (4.1%) and ICT (3.3%). Further research is merited to explore the composition of these 6.1% A-level CS students, many of whom are likely to be male (given the overall dominance of boys here). At GCSE, the representation is more in line with the overall percentages.
+
+- Our findings confirm that computer science students have relatively high KS2 and GCSE maths scores. We note that some schools may limit enrolment to these courses by prior or expected performance in maths.
+
+- For subject combinations, students taking GCSE CS are more likely to be taking triple science than core science. Students taking A-level CS are most likely to taking the subjects Maths and Physics as their other choices.
+
+- Females are much better represented in digitally 'creative' qualifications such as those available through BTEC, than they are in computer science.
+
+- Numbers of students taking a computing qualification at KS4 has remained steady since the introduction of computer science into the English national curriculum in 2014. However, in 2017 these numbers were supported by the inclusion of ECDL (representing 38.7% of all computing qualifications at this level) into the 'Progress 8' provider assessment measure. As of 2018, ECDL is no longer included in Progress 8 and it seems likely that many schools will drop this course without a clear replacement.
+
+- ICT and computer science have substantially different student intakes. The removal of GCSE and A-level ICT from the qualification landscape in 2018 looks likely to have a negative impact on those looking to study a computing qualification at KS4 and KS5; this will disproportionately impact females, poorer students and some minority groups. Few other ICT qualifications have been approved for KS4 league tables, leaving providers with a limited choice of options going forward. For some providers the option taken will be no provision beside computer science.
+
+

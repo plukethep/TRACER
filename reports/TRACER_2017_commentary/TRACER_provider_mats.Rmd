@@ -1,0 +1,9 @@
+
+Please note that the trusts are listed here in rank of overall number of students and there may be many small multi-academy trusts (MATs) with high levels of provision not shown.
+ 
+GCSE computer science provision varies significantly between different MATs; for example United Learning Trust and the Northern Education Trust have 18.4% of their students sitting the subject, while the Outwood Grange Academies Trust only has 5% of its students. This suggests that educational philosophies underpinning MATs might be influential in schools offering CS and/or students taking it.
+ 
+Whilst students generally underperform in GCSE CS compare to other subjects, some trusts buck the trend; in particular the Diocese of Westminster and Outwood Grange Academies Trust show similar performance in CS compared to students' other subjects.
+ 
+Multi-academy trusts for A-level providers have smaller student numbers than at GCSE, this makes statistical provision of A-level computer science susceptible to the influence of small changes in numbers and detailed analysis has been dropped. Of note is The North Tyneside Learning Trust which has no A-level CS provision in its 7 providers.
+

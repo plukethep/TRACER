@@ -1,0 +1,9 @@
+
+There are some excellent examples of GCSE CS provision across the country with Bournemouth, Knowsley, Trafford and Hartlepool local authorities (LAs) having more than one in five of their students studying the subject. However, schools in many local authorities still have a lot of work to do, with low provision amongst several large local authorities, e.g. Kingston upon Hull (3.9%) and Luton (5.1%).
+ 
+Grades from some LAs are very strong, for example: Slough, Kensington and Chelsea, and Redbridge. However, it should be noted that almost all local authorities showed GCSE CS students on average getting a lower grade in CS than their other subjects.
+ 
+At A-level, Islington has one in ten of its students sitting CS; Reading, Poole, South Tyneside and Swindon have more than double the national average. There remain three local authorities where there was no A-level CS provision in 2017: Halton, Knowsley and the City of London; however it should be noted that each of these authorities have very small A-level cohorts.
+
+There are many areas of the country where the provision is limited to independent or grammar schools, which makes A-level CS a far from inclusive subject.  
+

@@ -1,0 +1,16 @@
+
+Take up of CS by girls at GCSE is very low - only 20% of those taking the qualification were female. The proportion remains roughly in line with 2016; however overall numbers are up as the numbers taking CS have increased overall. GCSE ICT shows much better female representation () and its removal will almost certainly lead to fewer females studying a computing GCSE beyond 2018.
+ 
+When girls do take GCSE CS, they obtain good grades: with higher proportions of A\*, A and B grades than their male counterparts.
+ 
+Very few female students opt to take A-level CS, with the percentage decreasing slightly on 2016 figures, however overall numbers are up as the numbers taking CS have increased overall. The removal of ICT as a qualification will likely lead to a significant decrease in the numbers of females studying a computing qualification at KS5.  
+ 
+Males now outperform females at the top grades for A-level; this is a change from 2015, where girls were outperforming boys.
+
+There are several local authorities where females are almost equally represented at GCSE CS: with Camden, Hartlepool, Tower Hamlets, Kingston upon Thames and Newham all having roughly four in ten students taking CS being female. This contrasts with much poorer provision for females in Poole, Barnet, Stockport and Middlesborough where fewer than one in ten students were female. London shows the best female proportional representation in GCSE CS (26.7% of students), contrasting with the South West where only 16.8% of the cohort was female.
+
+There were 25 A-level LEAs with CS provision but no females, namely: Wigan, Central Bedfordshire, Liverpool, Brent, Thurrock, Bracknell Forest, Stockton-on-Tees, Torbay, Enfield, Rotherham, Blackburn with Darwen, Telford and Wrekin, North Somerset, Windsor and Maidenhead, Hackney, Southampton, North Tyneside, Halton, Knowsley, City of London, Kingston upon Hull City of, Hounslow, Peterborough, Tameside, Rutland. In addition, 3 local authorities had no CS provision, namely Halton, Knowsley, City of London. Numbers are small across all local authorities, we have chosen to remove the local authority table to maintain the anonymity of students.
+
+At A-level CS, London again shows the best proportional representation of females, at 13.2% of the cohort. The worst representation is in the East of England, with only 6.3% of the cohort being female.
+
+
