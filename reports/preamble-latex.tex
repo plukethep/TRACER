@@ -1,0 +1,44 @@
+\usepackage{fancyhdr}
+\usepackage{array}
+\usepackage{float}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage{lscape}
+\usepackage{draftwatermark}
+\usepackage{eso-pic,graphicx,transparent}
+
+
+
+%% nuts hack to redefine subparagraph so it doesn't offend titlesec}
+%\let\stupidsubpara\subparagraph
+%\let\stupidpara\paragraph
+%\let\paragraph\subsubparagraph
+
+% \usepackage{titlesec}
+%\usepackage{titlesec.sty}
+%% and now to fix it
+%\let\subparagraph\stupidsubpara
+%\let\paragraph\stupidpara
+
+\usepackage{xcolor}
+
+\SetWatermarkText{}
+
+\fancyhead[CO,CE]{}
+\setlength{\abovecaptionskip}{-10pt}
+
+\let\origfigure\figure
+\let\endorigfigure\endfigure
+\renewenvironment{figure}[1][2] {
+    \expandafter\origfigure\expandafter[H]
+} {
+    \endorigfigure
+}
+
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+
+\definecolor{DarkGreen}{RGB}{6,53,50}
+\definecolor{LightGreen}{RGB}{00,160,110}
+
+\newcommand{\blandscape}{\begin{landscape}}
+\newcommand{\elandscape}{\end{landscape}}
