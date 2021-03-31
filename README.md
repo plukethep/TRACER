@@ -82,6 +82,14 @@ getPackages <- function(packs){
  ```
  Once all the files are downloaded transfer them to your NPD analysis machine and load them from there.
 
+## Some things to note
+310 == GCSE, 391 == GCSE 9-1
+311 == Double GCSE
+
+2210 == Maths
+2610 == ICT
+2650 == CS
+
 ## How to write a report
 
 # License
