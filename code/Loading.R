@@ -204,7 +204,7 @@ loadStudents <- function(year, keystage, n=0){
     warning(paste0("Due to duplicate PupilRefNo, deleting ", nrow(students) - length(unique(students$PupilMatchingRefAnonymous)), " out of ", nrow(students), " records"))
   }
 
-  #filter out those students with multiple genders 2017 KS5 0.3%
+  #filter out those students with multiple genders
   students <-  students %>% group_by(PupilMatchingRefAnonymous) %>% mutate(n= n()) %>% filter(n  == 1) %>% select(-n) %>% ungroup()
   #get any duplicated students
   # IDs <- as.vector(students[duplicated(students$PupilMatchingRefAnonymous),]$PupilMatchingRefAnonymous)
