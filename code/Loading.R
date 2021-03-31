@@ -196,7 +196,6 @@ loadStudents <- function(year, keystage, n=0){
 
 
   } else {
-    #631673
     #deal with duplicates
     students <- students %>% distinct() %>% arrange(PupilMatchingRefAnonymous, EthMaj, IDACIScore)
 
