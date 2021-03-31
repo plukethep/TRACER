@@ -82,13 +82,14 @@ getPackages <- function(packs){
  ```
  Once all the files are downloaded transfer them to your NPD analysis machine and load them from there.
 
-## Some things to note
-310 == GCSE, 391 == GCSE 9-1
-311 == Double GCSE
+## Codes used throughout:
+### Level
+Used to define the qualification level
+310 == GCSE (A*-U), 391 == GCSE (9-1), 311 == Double GCSE, 320 == Alevel?
 
-2210 == Maths
-2610 == ICT
-2650 == CS
+### MAPPING
+Used to define the subject
+2210 == Maths, 2610 == CS, 2650 == ICT
 
 ## How to write a report
 
